@@ -3,6 +3,8 @@ OSXのコマンドラインで動く日付計算コマンドです。
 今日を起点に指定した日数前または日数後の日付を返します。
 ただし計算可能な期間は西暦1100年から9999年の間のみ。  
 
+Swift 2に対応しました。  
+
 ##Usage | 使い方
 コマンドに続けて**-a**または**-b**オプションの後に計算したい期間を指定します。  
 指定日数より後の日付を知りたい時は**-a**、前の日付を知りたい時は**-b**を指定します。
@@ -22,12 +24,16 @@ $ date
 Thu Sep  3 20:25:42 JST 2015
 $ ./datecount -a 25d
 25days after is Mon Sep 28 2015
+
 $ ./datecount -b 80d
 80days before is Mon Jun 15 2015
+
 $ ./datecount -a 3y2m
 3years 2months after is Sat Nov 3 2018
+
 $ ./datecount -b w
 7days before is Thr Aug 27 2015
+
 $ ./datecount -b 3
 3days before is Mon Aug 31 2015
 ```

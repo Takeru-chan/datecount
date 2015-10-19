@@ -1,6 +1,6 @@
 #! /usr/bin/swift
 import Foundation
-var msg: [String] = ["date counter ver.1.0 (c)2015 Takeru-chan\nusage: datecount -[a|b] [n(d)][(n)d][(n)w][(n)m][(n)y]", "datecount: Specified term is not in range A.D.1100..9999.", ""]
+var msg: [String] = ["date counter ver.1.1 (c)2015 Takeru-chan\nusage: datecount -[a|b] [n(d)][(n)d][(n)w][(n)m][(n)y]", "datecount: Specified term is not in range A.D.1100..9999.", ""]
 var msg_status: Int = 2
 let month_odr: [String] = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 let week_odr: [String] = ["Sun", "Mon", "Tue", "Wed", "Thr", "Fri", "Sat"]
@@ -8,43 +8,37 @@ var diff = (year:0, month:0, day:0, buffer:"")
 // NSDate型の引数を受け取り、NSDateComponents型を返す関数
 func getCalComp(date: NSDate) -> NSDateComponents {
     let cal: NSCalendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
-    var components: NSDateComponents = cal.components(
-                                NSCalendarUnit.CalendarUnitYear     |
-                                NSCalendarUnit.CalendarUnitMonth    |
-                                NSCalendarUnit.CalendarUnitDay      |
-                                NSCalendarUnit.CalendarUnitWeekday,
-                                fromDate:date)
+    let components: NSDateComponents = cal.components([.Year, .Month, .Day, .Weekday], fromDate:date)
     return components
 }
 // fmt文字列解析
 func analyzeStr(fmt_str: String) -> (Int, Int, Int, String) {
-    var char: CChar
     diff.buffer = ""
-    chk_char: for char in fmt_str {
+    chk_char: for char in fmt_str.characters {
         switch char {
         case "d":
             if diff.buffer == "" {
                 diff.buffer = "1"
             }
-            diff.day = diff.day + diff.buffer.toInt()!
+            diff.day = diff.day + Int(diff.buffer)!
             diff.buffer = ""
         case "w":
             if diff.buffer == "" {
                 diff.buffer = "1"
             }
-            diff.day = diff.day + diff.buffer.toInt()! * 7
+            diff.day = diff.day + Int(diff.buffer)! * 7
             diff.buffer = ""
         case "m":
             if diff.buffer == "" {
                 diff.buffer = "1"
             }
-            diff.month = diff.month + diff.buffer.toInt()!
+            diff.month = diff.month + Int(diff.buffer)!
             diff.buffer = ""
         case "y":
             if diff.buffer == "" {
                 diff.buffer = "1"
             }
-            diff.year = diff.year + diff.buffer.toInt()!
+            diff.year = diff.year + Int(diff.buffer)!
             diff.buffer = ""
         case "0","1","2","3","4","5","6","7","8","9":
             diff.buffer = diff.buffer + String(char)
@@ -54,7 +48,7 @@ func analyzeStr(fmt_str: String) -> (Int, Int, Int, String) {
         }
     }
     if diff.buffer != "" {
-        diff.day = diff.day + diff.buffer.toInt()!
+        diff.day = diff.day + Int(diff.buffer)!
         diff.buffer = ""
     }
     if msg_status != 0 {
@@ -79,7 +73,7 @@ func analyzeStr(fmt_str: String) -> (Int, Int, Int, String) {
     return diff
 }
 // 実質プログラムの始まり
-let arguments: [String] = NSProcessInfo.processInfo().arguments.map{String($0 as! NSString)}
+let arguments: [String] = NSProcessInfo.processInfo().arguments.map{String($0 as NSString)}
 if arguments.count == 3 {
     switch arguments[1] {
     case "-a":
@@ -117,4 +111,4 @@ if arguments.count == 3 {
 } else {
     msg_status = 0
 }
-println("\(msg[msg_status])")
+print("\(msg[msg_status])\n")
