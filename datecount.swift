@@ -1,6 +1,6 @@
 #! /usr/bin/swift
 import Foundation
-var msg: [String] = ["", "date counter ver.1.2 (c)2015 Takeru-chan\nusage: datecount -[a|b] [n(d)][(n)d][(n)w][(n)m][(n)y]", "datecount: Specified term is not in range A.D.1100..9999."]
+var msg: [String] = ["", "date counter ver.1.2.1 (c)2015 Takeru-chan\nusage: datecount -[a|b] [n(d)][(n)d][(n)w][(n)m][(n)y]", "datecount: Specified term is not in range A.D.1100..9999."]
 var msg_status: Int32 = 0
 let month_odr: [String] = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 let week_odr: [String] = ["Sun", "Mon", "Tue", "Wed", "Thr", "Fri", "Sat"]
@@ -79,9 +79,6 @@ if arguments.count == 3 {
         msg[0] = msg[0] + "after is "
     case "-b":
         analyzeStr(arguments[2])
-        if diff.year + diff.month / 12 + diff.day / 365 > 1900 {
-            msg_status = 2
-        }
         diff.year = -1 * diff.year
         diff.month = -1 * diff.month
         diff.day = -1 * diff.day
