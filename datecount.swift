@@ -1,14 +1,14 @@
 #! /usr/bin/swift
 import Foundation
-var msg: [String] = ["", "date counter ver.1.2.1 (c)2015 Takeru-chan\nusage: datecount -[a|b] [n(d)][(n)d][(n)w][(n)m][(n)y]", "datecount: Specified term is not in range A.D.1100..9999."]
+var msg: [String] = ["", "date counter ver.1.3 (c)2015 Takeru-chan\nusage: datecount -[a|b] [n(d)][(n)d][(n)w][(n)m][(n)y]", "datecount: Specified term is not in range A.D.1100..9999."]
 var msg_status: Int32 = 0
 let month_odr: [String] = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 let week_odr: [String] = ["Sun", "Mon", "Tue", "Wed", "Thr", "Fri", "Sat"]
 var diff = (year:0, month:0, day:0, buffer:"")
 // NSDate型の引数を受け取り、NSDateComponents型を返す関数
-func getCalComp(date: NSDate) -> NSDateComponents {
-    let cal: NSCalendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
-    let components: NSDateComponents = cal.components([.Year, .Month, .Day, .Weekday], fromDate:date)
+func getCalComp(date: Date) -> DateComponents {
+    let cal: NSCalendar = NSCalendar(identifier: NSCalendar.Identifier.gregorian)!
+    let components: DateComponents = cal.components([.year, .month, .day, .weekday], from:date)
     return components
 }
 // fmt文字列解析
@@ -71,14 +71,14 @@ func analyzeStr(fmt_str: String) -> (Int, Int, Int, String) {
     return diff
 }
 // 実質プログラムの始まり
-let arguments: [String] = NSProcessInfo.processInfo().arguments.map{String($0)}
+let arguments: [String] = CommandLine.arguments
 if arguments.count == 3 {
     switch arguments[1] {
     case "-a":
-        analyzeStr(arguments[2])
+        analyzeStr(fmt_str:arguments[2])
         msg[0] = msg[0] + "after is "
     case "-b":
-        analyzeStr(arguments[2])
+        analyzeStr(fmt_str:arguments[2])
         diff.year = -1 * diff.year
         diff.month = -1 * diff.month
         diff.day = -1 * diff.day
@@ -87,16 +87,16 @@ if arguments.count == 3 {
         msg_status = 1
     }
     if msg_status != 1 {
-        let now: NSDate = NSDate()
-        var cal_comp: NSDateComponents = getCalComp(now)
-        cal_comp.day = cal_comp.day + diff.day
-        cal_comp.month = cal_comp.month + diff.month
-        cal_comp.year = cal_comp.year + diff.year
-        var result_date: NSDate = NSCalendar.currentCalendar().dateFromComponents(cal_comp)!
-        cal_comp = getCalComp(result_date)
-        msg[0] = msg[0] + week_odr[cal_comp.weekday - 1] + " " + month_odr[cal_comp.month - 1]
-        if cal_comp.year >= 1100 && cal_comp.year <= 9999 {
-            msg[0] = msg[0] + " \(cal_comp.day) \(cal_comp.year)"
+        let now: Date = Date()
+        var cal_comp: DateComponents = getCalComp(date:now)
+        cal_comp.day = cal_comp.day! + diff.day
+        cal_comp.month = cal_comp.month! + diff.month
+        cal_comp.year = cal_comp.year! + diff.year
+        var result_date: Date = Calendar.current.date(from:cal_comp)!
+        cal_comp = getCalComp(date:result_date)
+        msg[0] = msg[0] + week_odr[cal_comp.weekday! - 1] + " " + month_odr[cal_comp.month! - 1]
+        if cal_comp.year! >= 1100 && cal_comp.year! <= 9999 {
+            msg[0] = msg[0] + " \(cal_comp.day!) \(cal_comp.year!)"
         } else {
             msg_status = 2
         }
