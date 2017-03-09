@@ -1,5 +1,5 @@
 import Foundation
-// test-CalendarDate version 1.00, 2017.3.1, (c)2017 Takeru-chan
+// test-CalendarDate version 1.10, 2017.3.10, (c)2017 Takeru-chan
 // Released under the MIT license. http://opensource.org/licenses/MIT
 let calendar: Calendar = Calendar(identifier: .gregorian)
 let Date20170201: Date = calendar.date(from: DateComponents(year:2017, month:2, day:1))!
@@ -35,7 +35,7 @@ let testDataSet: [(condition:String, targetDate:Date, offsetYear:Int, offsetMont
   (condition:"10000/1/1 before 1 month", targetDate:Date100000101, offsetYear:0, offsetMonth:-1, offsetDay:0, returnDate:Date99991201),
   (condition:"12017/2/1 after 1 day", targetDate:Date120170201, offsetYear:0, offsetMonth:0, offsetDay:1, returnDate:Date120170202)]
 for n in testDataSet {
-  returnSet = CalendarDate().get(targetDate: n.targetDate, offsetYear: n.offsetYear, offsetMonth: n.offsetMonth, offsetDay: n.offsetDay)
+  returnSet = CalendarDate(targetDate: n.targetDate).get(offsetYear: n.offsetYear, offsetMonth: n.offsetMonth, offsetDay: n.offsetDay)
   print("[Test condition: \(n.condition)]")
   if returnSet.status {
     print("\(calendar.component(.year, from:returnSet.date!))/\(calendar.component(.month, from:returnSet.date!))/\(calendar.component(.day, from:returnSet.date!))", terminator:"")
@@ -45,3 +45,6 @@ for n in testDataSet {
     if returnSet.date == nil { print("\u{001B}[0;32m => OK\u{001B}[0;30m") } else { print("\u{001B}[0;31m => NG\u{001B}[0;30m") }
   }
 }
+let calendarDate:CalendarDate = CalendarDate(targetDate:nil)
+returnSet = calendarDate.get(offsetYear:1,offsetMonth:0,offsetDay:0)
+print("Today on next year is \(returnSet.date!)")
