@@ -1,5 +1,5 @@
 import Foundation
-// Condition for datecount version 1.00, 2017.3.9, (c)2017 Takeru-chan
+// Condition for datecount version 1.01, 2017.3.10, (c)2017 Takeru-chan
 // Released under the MIT license. http://opensource.org/licenses/MIT
 class Condition {
   private var status:Int
@@ -20,7 +20,7 @@ class Condition {
   // 1:Show version number, 2:Show help message, 3:No option,
   // 4:Option switch error, 5:Offset command error, 6:Date setting error
   func analyzeSwitch(arguments:[String]){
-    if arguments.count < 2 || arguments.count > 4 {
+		if !(2...4 ~= arguments.count) {
       status = 3
     } else if arguments.count == 2 {
       switch arguments[1] {
