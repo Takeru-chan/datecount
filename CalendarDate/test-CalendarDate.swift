@@ -1,5 +1,5 @@
 import Foundation
-// test-CalendarDate version 1.20, 2017.3.11, (c)2017 Takeru-chan
+// test-CalendarDate version 1.21, 2017.3.11, (c)2017 Takeru-chan
 // Released under the MIT license. http://opensource.org/licenses/MIT
 let calendar: Calendar = Calendar(identifier: Calendar.Identifier.gregorian)
 let Date20180201: Date = calendar.date(from: DateComponents(year:2018, month:2, day:1))!
@@ -16,7 +16,9 @@ let Date99991201: Date = calendar.date(from: DateComponents(year:9999, month:12,
 let Date99991231: Date = calendar.date(from: DateComponents(year:9999, month:12, day:31))!
 let Date100000101: Date = calendar.date(from: DateComponents(year:10000, month:1, day:1))!
 let Date120170202: Date = calendar.date(from: DateComponents(year:12017, month:2, day:2))!
+var calendarDate:CalendarDate
 var returnSet:(date:Date?, status:Int)
+var components:DateComponents
 let testDataSet: [(condition:String, targetYear:Int, targetMonth:Int, targetDay:Int, offsetYear:Int, offsetMonth:Int, offsetDay:Int, returnDate:Date, status:Int)] = [
   (condition:"2017/2/1 after 1 year", targetYear:2017, targetMonth:2, targetDay:1, offsetYear:1, offsetMonth:0, offsetDay:0, returnDate:Date20180201, status:1),
   (condition:"2017/2/1 after 1 month", targetYear:2017, targetMonth:2, targetDay:1, offsetYear:0, offsetMonth:1, offsetDay:0, returnDate:Date20170301, status:1),
@@ -35,7 +37,8 @@ let testDataSet: [(condition:String, targetYear:Int, targetMonth:Int, targetDay:
   (condition:"10000/1/1 before 1 month", targetYear:10000, targetMonth:1, targetDay:1, offsetYear:0, offsetMonth:-1, offsetDay:0, returnDate:Date99991201, status:1),
   (condition:"12017/2/1 after 1 day", targetYear:12017, targetMonth:2, targetDay:1, offsetYear:0, offsetMonth:0, offsetDay:1, returnDate:Date120170202, status:0)]
 for n in testDataSet {
-  returnSet = CalendarDate(targetYear:n.targetYear, targetMonth:n.targetMonth, targetDay:n.targetDay).get(offsetYear:n.offsetYear, offsetMonth:n.offsetMonth, offsetDay:n.offsetDay)
+  calendarDate = CalendarDate(targetYear:n.targetYear, targetMonth:n.targetMonth, targetDay:n.targetDay)
+  returnSet = calendarDate.get(offsetYear:n.offsetYear, offsetMonth:n.offsetMonth, offsetDay:n.offsetDay)
   print("[Test condition: \(n.condition)]")
   if returnSet.status != 0 {
     print("\(calendar.component(.year, from:returnSet.date!))/\(calendar.component(.month, from:returnSet.date!))/\(calendar.component(.day, from:returnSet.date!))", terminator:"")
@@ -45,7 +48,13 @@ for n in testDataSet {
     if returnSet.date == nil { print("\u{001B}[0;32m => OK\u{001B}[0;30m") } else { print("\u{001B}[0;31m => NG\u{001B}[0;30m") }
   }
 }
-let calendarDate:CalendarDate = CalendarDate(targetYear:0, targetMonth:0, targetDay:0)
+calendarDate = CalendarDate(targetYear:0, targetMonth:0, targetDay:0)
 returnSet = calendarDate.get(offsetYear:1,offsetMonth:0,offsetDay:0)
-let components: DateComponents = calendar.dateComponents([.year, .month, .day], from:returnSet.date!)
+components = calendar.dateComponents([.year, .month, .day], from:returnSet.date!)
 print("Today on next year is \(components.year!)/\(components.month!)/\(components.day!)")
+returnSet = calendarDate.get(offsetYear:0,offsetMonth:1,offsetDay:0)
+components = calendar.dateComponents([.year, .month, .day], from:returnSet.date!)
+print("Today on next month is \(components.year!)/\(components.month!)/\(components.day!)")
+returnSet = calendarDate.get(offsetYear:0,offsetMonth:0,offsetDay:1)
+components = calendar.dateComponents([.year, .month, .day], from:returnSet.date!)
+print("Tomorrow is \(components.year!)/\(components.month!)/\(components.day!)")

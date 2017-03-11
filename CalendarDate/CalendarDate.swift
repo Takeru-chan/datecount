@@ -1,5 +1,5 @@
 import Foundation
-// CalendarDate version 1.20, 2017.3.11, (c)2017 Takeru-chan
+// CalendarDate version 1.21, 2017.3.11, (c)2017 Takeru-chan
 // Released under the MIT license. http://opensource.org/licenses/MIT
 // Usage:
 // let calendarDate:CalendarDate(targetYear:Int, targetMonth:Int, targetDay:Int) // If arguments are 0, today is set automatically.
@@ -29,6 +29,8 @@ class CalendarDate {
     if targetYear == 0 && targetMonth == 0 && targetDay == 0 {
       targetDate = Date()
       targetYear = calendar.component(.year, from: targetDate)
+      targetMonth = calendar.component(.month, from: targetDate)
+      targetDay = calendar.component(.day, from: targetDate)
     }
     returnDate = targetDate
     if 1582...9999 ~= targetYear {
