@@ -1,26 +1,44 @@
 import Foundation
-// Condition for datecount version 1.01, 2017.3.10, (c)2017 Takeru-chan
+// Condition for datecount version 1.10, 2017.3.11, (c)2017 Takeru-chan
 // Released under the MIT license. http://opensource.org/licenses/MIT
+// Usage:
+// let arguments:[String] = CommandLine.arguments
+// let condition:Condition = Condition()
+// condition.analyzeSwitch(arguments:arguments)
+// let status:Int = condition.getStatus()
+// if status == 0 {
+//   let targetYear:Int = condition.getTargetYear()   // Year of target date. If target date is not indicated, it returns 0.
+//   let targetMonth:Int = condition.getTargetMonth() // Month of target date. If target date is not indicated, it returns 0.
+//   let targetDay:Int = condition.getTargetDay()     // Day of target date. If target date is not indicated, it returns 0.
+//   let offsetYear:Int = condition.getOffsetYear()   // Difference of year from target date.
+//   let offsetMonth:Int = condition.getOffsetMonth() // Difference of month from target date.
+//   let offsetDay:Int = condition.getOffsetDay()     // Difference of day from target date.
+// }
+//
 class Condition {
   private var status:Int
-  private var targetDate:Date?
+  private var targetYear:Int
+  private var targetMonth:Int
+  private var targetDay:Int
   private var offsetYear:Int
   private var offsetMonth:Int
   private var offsetDay:Int
-  init (status:Int = 0, targetDate:Date? = nil,
+  init (status:Int = 0, targetYear:Int = 0, targetMonth:Int = 0, targetDay:Int = 0,
     offsetYear:Int = 0, offsetMonth:Int = 0, offsetDay:Int = 0) {
     self.status = status
-    self.targetDate = targetDate
+    self.targetYear = targetYear
+    self.targetMonth = targetMonth
+    self.targetDay = targetDay
     self.offsetYear = offsetYear
     self.offsetMonth = offsetMonth
     self.offsetDay = offsetDay
   }
   // This method sets status from arguments data set.
   // Status code is as below.
-  // 1:Show version number, 2:Show help message, 3:No option,
+  // 0:Terminate normally, 1:Show version number, 2:Show help message, 3:No option,
   // 4:Option switch error, 5:Offset command error, 6:Date setting error
   func analyzeSwitch(arguments:[String]){
-		if !(2...4 ~= arguments.count) {
+    if !(2...4 ~= arguments.count) {
       status = 3
     } else if arguments.count == 2 {
       switch arguments[1] {
@@ -43,7 +61,7 @@ class Condition {
       }
     }
   }
-  // This method targetDate from arguments data set.
+  // This method targetYear, targetMonth and targetDay from arguments data set.
   func checkDate(dateString:String) {
     if dateString.characters.count != 8 { status = 6 }
     for char in dateString.characters {
@@ -59,14 +77,12 @@ class Condition {
       let dayIndex = dateString.index(dateString.endIndex, offsetBy:-2)
       let monthIndex = dateString.index(after:yearIndex)
       let range = monthIndex..<dayIndex
-      let yearString:String = dateString.substring(to:yearIndex)
-      let monthString:String = dateString.substring(with:range)
-      let dayString:String = dateString.substring(from:dayIndex)
-      let calendar:Calendar = Calendar(identifier:.gregorian)
-      targetDate = calendar.date(from:DateComponents(year:Int(yearString), month:Int(monthString), day:Int(dayString)))
+      targetYear = Int(dateString.substring(to:yearIndex))!
+      targetMonth = Int(dateString.substring(with:range))!
+      targetDay = Int(dateString.substring(from:dayIndex))!
     }
   }
-  // This method gets offsetYear, offsetMonth, offsetDay from arguments data set.
+  // This method gets offsetYear, offsetMonth and offsetDay from arguments data set.
   func checkCommand(commandString:String) {
     var buffer = ""
     chk_char: for char in commandString.characters {
@@ -104,8 +120,14 @@ class Condition {
   func getStatus() -> Int {
     return status
   }
-  func getDate() -> Date? {
-    return targetDate
+  func getTargetYear() -> Int {
+    return targetYear
+  }
+  func getTargetMonth() -> Int {
+    return targetMonth
+  }
+  func getTargetDay() -> Int {
+    return targetDay
   }
   func getOffsetYear() -> Int {
     return offsetYear
