@@ -1,8 +1,8 @@
 import Foundation
-// CalendarDate version 1.21, 2017.3.11, (c)2017 Takeru-chan
+// CalendarDate version 1.21a, 2017.3.11, (c)2017 Takeru-chan
 // Released under the MIT license. http://opensource.org/licenses/MIT
 // Usage:
-// let calendarDate:CalendarDate(targetYear:Int, targetMonth:Int, targetDay:Int) // If arguments are 0, today is set automatically.
+// let calendarDate:CalendarDate = CalendarDate(targetYear:Int, targetMonth:Int, targetDay:Int) // If arguments are 0, today is set automatically.
 // let returnDate:(date:Date?, status:Bool) = calendarDate.get(offsetYear: Int, offsetMonth: Int, offsetDay: Int)
 //   Returned values are below.
 //   If status is 0, date is nil by something error.
