@@ -1,141 +1,127 @@
 import Foundation
-// Condition for datecount version 1.10, 2017.3.11, (c)2017 Takeru-chan
+// Condition for datecount version 1.20, 2017.3.15, (c)2017 Takeru-chan
 // Released under the MIT license. http://opensource.org/licenses/MIT
 // Usage:
 // let arguments:[String] = CommandLine.arguments
-// let condition:Condition = Condition()
-// condition.analyzeSwitch(arguments:arguments)
-// let status:Int = condition.getStatus()
-// if status == 0 {
-//   let targetYear:Int = condition.getTargetYear()   // Year of target date. If target date is not indicated, it returns 0.
-//   let targetMonth:Int = condition.getTargetMonth() // Month of target date. If target date is not indicated, it returns 0.
-//   let targetDay:Int = condition.getTargetDay()     // Day of target date. If target date is not indicated, it returns 0.
-//   let offsetYear:Int = condition.getOffsetYear()   // Difference of year from target date.
-//   let offsetMonth:Int = condition.getOffsetMonth() // Difference of month from target date.
-//   let offsetDay:Int = condition.getOffsetDay()     // Difference of day from target date.
-// }
+// let condition:Condition = Condition(arguments:arguments)
+// let resultSet:(status:Int,silence:Bool) = condition.getResultSet()
+//     status=0:-a/-A/-b/-B/-c/-C, status=1:-v, status=2:-h,
+//     status=3:No option, status=4:Unknown option,
+//     silence=false:Verbose mode, silence=true:Silence mode
+// let dateSet:(target:String?,destination:String?) = condition.getDateSet()
+// let adjustCommand:String? = condition.getAdjustCommand()
+//     if option is -a of -A, returns "forward".
+//     if option is -b of -B, returns "backward".
 //
 class Condition {
+  private var arguments:[String]
   private var status:Int
-  private var targetYear:Int
-  private var targetMonth:Int
-  private var targetDay:Int
-  private var offsetYear:Int
-  private var offsetMonth:Int
-  private var offsetDay:Int
-  init (status:Int = 0, targetYear:Int = 0, targetMonth:Int = 0, targetDay:Int = 0,
-    offsetYear:Int = 0, offsetMonth:Int = 0, offsetDay:Int = 0) {
+  private var silence:Bool
+  private var targetDate:String?
+  private var destinationDate:String?
+  private var adjustCommand:String?
+  init (arguments:[String], status:Int = 0, silence:Bool = false,
+    targetDate:String? = nil, destinationDate:String? = nil, adjustCommand:String? = nil) {
+    self.arguments = arguments
     self.status = status
-    self.targetYear = targetYear
-    self.targetMonth = targetMonth
-    self.targetDay = targetDay
-    self.offsetYear = offsetYear
-    self.offsetMonth = offsetMonth
-    self.offsetDay = offsetDay
+    self.silence = silence
+    self.targetDate = targetDate
+    self.destinationDate = destinationDate
+    self.adjustCommand = adjustCommand
+    self.analyze()
   }
   // This method sets status from arguments data set.
   // Status code is as below.
-  // 0:Terminate normally, 1:Show version number, 2:Show help message, 3:No option,
-  // 4:Option switch error, 5:Offset command error, 6:Date setting error
-  func analyzeSwitch(arguments:[String]){
-    if !(2...4 ~= arguments.count) {
+  // 0:Terminate normally, 1:Show version number, 2:Show help message,
+  // 3:No option, 4:Option switch error
+  func analyze(){
+    if !(2...5 ~= arguments.count) {
       status = 3
-    } else if arguments.count == 2 {
+    } else {
       switch arguments[1] {
         case "-v":
           status = 1
         case "-h":
           status = 2
+        case "-a","-A":
+          if 3...4 ~= arguments.count {
+            adjustCommand = arguments[2]
+            destinationDate = "forward"
+            if arguments[1] == "-A" { silence = true }
+            if arguments.count == 4 { targetDate = arguments[3] }
+          } else { status = 4 }
+        case "-b","-B":
+          if 3...4 ~= arguments.count {
+            adjustCommand = arguments[2]
+            destinationDate = "backward"
+            if arguments[1] == "-B" { silence = true }
+            if arguments.count == 4 { targetDate = arguments[3] }
+          } else { status = 4 }
+        case "-c","-C":
+          if 3...4 ~= arguments.count {
+            destinationDate = arguments[2]
+            if arguments[1] == "-C" { silence = true }
+            if arguments.count == 4 { targetDate = arguments[3] }
+          } else { status = 4 }
         default:
           status = 4
       }
-    } else {
-      if arguments.count == 4 { self.checkDate(dateString:arguments[3]) }
-      self.checkCommand(commandString:arguments[2])
-      if arguments[1] == "-b" {
-        offsetYear *= -1
-        offsetMonth *= -1
-        offsetDay *= -1
-      } else if arguments[1] != "-a" {
-        status = 4
-      }
     }
-  }
-  // This method targetYear, targetMonth and targetDay from arguments data set.
-  func checkDate(dateString:String) {
-    if dateString.characters.count != 8 { status = 6 }
-    for char in dateString.characters {
-      switch char {
-        case "0"..."9":
-          break
-        default:
-          status = 6
-      }
-    }
-    if status != 6 {
-      let yearIndex = dateString.index(dateString.startIndex, offsetBy:4)
-      let dayIndex = dateString.index(dateString.endIndex, offsetBy:-2)
-      let monthIndex = dateString.index(after:yearIndex)
-      let range = monthIndex..<dayIndex
-      targetYear = Int(dateString.substring(to:yearIndex))!
-      targetMonth = Int(dateString.substring(with:range))!
-      targetDay = Int(dateString.substring(from:dayIndex))!
-    }
-  }
-  // This method gets offsetYear, offsetMonth and offsetDay from arguments data set.
-  func checkCommand(commandString:String) {
-    var buffer = ""
-    chk_char: for char in commandString.characters {
-        switch char {
-        case "d":
-            if buffer == "" { buffer = "1" }
-            offsetDay += Int(buffer)!
-            buffer = ""
-        case "w":
-            if buffer == "" { buffer = "1" }
-            offsetDay += Int(buffer)! * 7
-            buffer = ""
-        case "m":
-            if buffer == "" { buffer = "1" }
-            offsetMonth += Int(buffer)!
-            buffer = ""
-        case "y":
-            if buffer == "" { buffer = "1" }
-            offsetYear += Int(buffer)!
-            buffer = ""
-        case "0"..."9":
-            buffer += String(char)
-        default:
-            status = 5
-            break chk_char
-        }
-    }
-    if buffer != "" {
-        offsetDay += Int(buffer)!
-        buffer = ""
-    }
-    return
-  }
+ }
 
-  func getStatus() -> Int {
-    return status
+  func getResult() -> (status:Int, silence:Bool) {
+    return (status, silence)
   }
-  func getTargetYear() -> Int {
-    return targetYear
+  func getDate() -> (targetDate:String?, destinationDate:String?) {
+    return (targetDate, destinationDate)
   }
-  func getTargetMonth() -> Int {
-    return targetMonth
-  }
-  func getTargetDay() -> Int {
-    return targetDay
-  }
-  func getOffsetYear() -> Int {
-    return offsetYear
-  }
-  func getOffsetMonth() -> Int {
-    return offsetMonth
-  }
-  func getOffsetDay() -> Int {
-    return offsetDay
+  func getAdjustCommand() -> String? {
+    return adjustCommand
   }
 }
+
+
+#if TEST
+// test-CalendarDate version 1.20, 2017.3.15, (c)2017 Takeru-chan
+// Released under the MIT license. http://opensource.org/licenses/MIT
+let testCondition:[(condition:[String], status:Int, silence:Bool, target:String?, destination:String?, adjustCommand:String?)] = [(condition:["show_version","-v"], status:1, silence:false, target:nil, destination:nil, adjustCommand:nil),
+        (condition:["show_help","-h"], status:2, silence:false, target:nil, destination:nil, adjustCommand:nil),
+        (condition:["no_option"], status:3, silence:false, target:nil, destination:nil, adjustCommand:nil),
+        (condition:["option_error_unknown_switch","--"], status:4, silence:false, target:nil, destination:nil, adjustCommand:nil),
+        (condition:["option_error_surplus","-a","3","20170201","surplus"], status:4, silence:false, target:nil, destination:nil, adjustCommand:nil),
+        (condition:["command_error","-a","cmdErr"], status:0, silence:false, target:nil, destination:"forward", adjustCommand:"cmdErr"),
+        (condition:["date_error","-a","3","123456789"], status:0, silence:false, target:"123456789", destination:"forward", adjustCommand:"3"),
+        (condition:["date_error","-a","3","abcdefgh"], status:0, silence:false, target:"abcdefgh", destination:"forward", adjustCommand:"3"),
+        (condition:["today_after_ymd_verbose","-a","ymd"], status:0, silence:false, target:nil, destination:"forward", adjustCommand:"ymd"),
+        (condition:["today_after_ymd_silent","-A","ymd"], status:0, silence:true, target:nil, destination:"forward", adjustCommand:"ymd"),
+        (condition:["indicated_date_after_ymd_verbose","-a","ymd","20170201"], status:0, silence:false, target:"20170201", destination:"forward", adjustCommand:"ymd"),
+        (condition:["indicated_date_after_ymd_silent","-A","ymd","20170201"], status:0, silence:true, target:"20170201", destination:"forward", adjustCommand:"ymd"),
+        (condition:["today_before_ymd_verbose","-b","ymd"], status:0, silence:false, target:nil, destination:"backward", adjustCommand:"ymd"),
+        (condition:["today_before_ymd_silent","-B","ymd"], status:0, silence:true, target:nil, destination:"backward", adjustCommand:"ymd"),
+        (condition:["20170201_befor_ymd_verbose","-b","ymd","20170201"], status:0, silence:false, target:"20170201", destination:"backward", adjustCommand:"ymd"),
+        (condition:["20170201_before_ymd_silent","-B","ymd","20170201"], status:0, silence:true, target:"20170201", destination:"backward", adjustCommand:"ymd"),
+        (condition:["between_from_today_to_20180201_verbose","-c","20180201"], status:0, silence:false, target:nil, destination:"20180201", adjustCommand:nil),
+        (condition:["between_from_today_to_20180201_silent","-C","20180201"], status:0, silence:true, target:nil, destination:"20180201", adjustCommand:nil),
+        (condition:["between_from_20170201_to_20180201_verbose","-c","20180201","20170201"], status:0, silence:false, target:"20170201", destination:"20180201", adjustCommand:nil),
+        (condition:["between_from_20170201_to_20180201_silent","-C","20180201","20170201"], status:0, silence:true, target:"20170201", destination:"20180201", adjustCommand:nil)]
+for n in testCondition {
+  let condition:Condition = Condition(arguments:n.condition)
+  print("[Test Condition:\(n.condition)]", terminator:"")
+  let resultSet:(status:Int, silence:Bool) = condition.getResult()
+  let dateSet:(targetDate:String?, destinationDate:String?) = condition.getDate()
+  let adjustCommand:String? = condition.getAdjustCommand()
+  if resultSet.status != n.status {
+    print("\n\u{001B}[0;31m status is \(resultSet.status). => NG\u{001B}[0;30m")
+  } else if resultSet.silence != n.silence {
+    print("\n\u{001B}[0;31m silence mode is \(resultSet.silence). => NG\u{001B}[0;30m")
+  } else if dateSet.targetDate != n.target {
+    print("\n\u{001B}[0;31m target date is \(dateSet.targetDate). => NG\u{001B}[0;30m")
+  } else if dateSet.destinationDate != n.destination {
+    print("\n\u{001B}[0;31m destination date is \(dateSet.destinationDate). => NG\u{001B}[0;30m")
+  } else if adjustCommand != n.adjustCommand {
+    print("\n\u{001B}[0;31m adjust command is \(adjustCommand). => NG\u{001B}[0;30m")
+  } else {
+    print("\u{001B}[0;32m => OK\u{001B}[0;30m")
+  }
+}
+#endif

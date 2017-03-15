@@ -1,4 +1,2 @@
 all:
-	cp -p test-Condition.swift main.swift
-	xcrun -sdk macosx swiftc -o test-Condition main.swift ./Condition.swift
-	rm main.swift
+	xcrun -sdk macosx swiftc -D TEST -o test-Condition ./Condition.swift
