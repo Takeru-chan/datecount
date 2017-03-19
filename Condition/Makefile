@@ -1,6 +1,8 @@
 all:
+	cp -p test-Condition.swift main.swift
 ifeq ($(shell uname),Linux)
-	swiftc -D TEST -o test-ConditionDate ./ConditionDate.swift
+	swiftc -o test-Condition ./main.swift ./Condition.swift
 else
-	xcrun -sdk macosx swiftc -D TEST -o test-Condition ./Condition.swift
+	xcrun -sdk macosx swiftc -o test-Condition ./main.swift ./Condition.swift
 endif
+	rm main.swift
