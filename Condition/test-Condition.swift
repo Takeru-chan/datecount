@@ -1,35 +1,66 @@
-import Foundation
-// test-CalendarDate version 1.10, 2017.3.11, (c)2017 Takeru-chan
+// test-Condition version 1.22a, 2017.3.20, (c)2017 Takeru-chan
 // Released under the MIT license. http://opensource.org/licenses/MIT
-let testCondition:[(condition:[String], status:Int, targetYear:Int, targetMonth:Int, targetDay:Int, offsetYear:Int, offsetMonth:Int, offsetDay:Int)] = [
-    (condition:["No_option"], status:3, targetYear:0, targetMonth:0, targetDay:0, offsetYear:0, offsetMonth:0, offsetDay:0),
-    (condition:["Show_version","-v"], status:1, targetYear:0, targetMonth:0, targetDay:0, offsetYear:0, offsetMonth:0, offsetDay:0),
-    (condition:["Show_help","-h"], status:2, targetYear:0, targetMonth:0, targetDay:0, offsetYear:0, offsetMonth:0, offsetDay:0),
-    (condition:["Today_affer_5days","-a","5d"], status:0, targetYear:0, targetMonth:0, targetDay:0, offsetYear:0, offsetMonth:0, offsetDay:5),
-    (condition:["Today_before_3years","-b","3y"], status:0, targetYear:0, targetMonth:0, targetDay:0, offsetYear:-3, offsetMonth:0, offsetDay:0),
-    (condition:["Indicated_day_after_3days","-a","3","20170201"], status:0, targetYear:2017, targetMonth:2, targetDay:1, offsetYear:0, offsetMonth:0, offsetDay:3),
-    (condition:["Switch_error","-X"], status:4, targetYear:0, targetMonth:0, targetDay:0, offsetYear:0, offsetMonth:0, offsetDay:0),
-    (condition:["Command_error","-b","3x"], status:5, targetYear:0, targetMonth:0, targetDay:0, offsetYear:0, offsetMonth:0, offsetDay:-3),
-    (condition:["Date_error","-a","3","2017/2/1"], status:6, targetYear:0, targetMonth:0, targetDay:0, offsetYear:0, offsetMonth:0, offsetDay:3)]
+let testCondition:[(condition:[String], status:Int32, silence:Bool, direction:Int, target:String?,
+    destination:String?, adjustCommand:String?)] = [
+      (condition:["show_version","-v"], status:1, silence:false, direction:0, target:nil, destination:nil,
+        adjustCommand:nil),
+      (condition:["show_help","-h"], status:2, silence:false, direction:0, target:nil, destination:nil,
+        adjustCommand:nil),
+      (condition:["no_option"], status:3, silence:false, direction:0, target:nil, destination:nil,
+        adjustCommand:nil),
+      (condition:["option_error_unknown_switch","--"], status:4, silence:false, direction:0, target:nil,
+        destination:nil, adjustCommand:nil),
+      (condition:["option_error_surplus","-a","3","20170201","surplus"], status:4, silence:false, direction:0,
+        target:nil, destination:nil, adjustCommand:nil),
+      (condition:["command_error","-a","cmdErr"], status:0, silence:false, direction:1, target:nil,
+        destination:nil, adjustCommand:"cmdErr"),
+      (condition:["date_error","-a","3","123456789"], status:0, silence:false, direction:1, target:"123456789",
+        destination:nil, adjustCommand:"3"),
+      (condition:["date_error","-a","3","abcdefgh"], status:0, silence:false, direction:1, target:"abcdefgh",
+        destination:nil, adjustCommand:"3"),
+      (condition:["today_after_ymd_verbose","-a","ymd"], status:0, silence:false, direction:1, target:nil,
+        destination:nil, adjustCommand:"ymd"),
+      (condition:["today_after_ymd_silent","-A","ymd"], status:0, silence:true, direction:1, target:nil,
+        destination:nil, adjustCommand:"ymd"),
+      (condition:["indicated_date_after_ymd_verbose","-a","ymd","20170201"], status:0, silence:false,
+        direction:1, target:"20170201", destination:nil, adjustCommand:"ymd"),
+      (condition:["indicated_date_after_ymd_silent","-A","ymd","20170201"], status:0, silence:true,
+        direction:1, target:"20170201", destination:nil, adjustCommand:"ymd"),
+      (condition:["today_before_ymd_verbose","-b","ymd"], status:0, silence:false, direction:-1, target:nil,
+        destination:nil, adjustCommand:"ymd"),
+      (condition:["today_before_ymd_silent","-B","ymd"], status:0, silence:true, direction:-1, target:nil,
+        destination:nil, adjustCommand:"ymd"),
+      (condition:["20170201_befor_ymd_verbose","-b","ymd","20170201"], status:0, silence:false, direction:-1,
+        target:"20170201", destination:nil, adjustCommand:"ymd"),
+      (condition:["20170201_before_ymd_silent","-B","ymd","20170201"], status:0, silence:true, direction:-1,
+        target:"20170201", destination:nil, adjustCommand:"ymd"),
+      (condition:["between_from_today_to_20180201_verbose","-c","20180201"], status:0, silence:false, direction:0,
+        target:nil, destination:"20180201", adjustCommand:nil),
+      (condition:["between_from_today_to_20180201_silent","-C","20180201"], status:0, silence:true, direction:0,
+        target:nil, destination:"20180201", adjustCommand:nil),
+      (condition:["between_from_20170201_to_20180201_verbose","-c","20180201","20170201"], status:0, silence:false,
+        direction:0, target:"20170201", destination:"20180201", adjustCommand:nil),
+      (condition:["between_from_20170201_to_20180201_silent","-C","20180201","20170201"], status:0, silence:true,
+        direction:0, target:"20170201", destination:"20180201", adjustCommand:nil)]
 for n in testCondition {
-  let condition:Condition = Condition()
-  print("[Test condition:\(n.condition)]")
-  condition.analyzeSwitch(arguments:n.condition)
-  if condition.getStatus() == n.status && condition.getTargetYear() == n.targetYear && condition.getTargetMonth() == n.targetMonth && condition.getTargetDay() == n.targetDay && condition.getOffsetYear() == n.offsetYear && condition.getOffsetMonth() == n.offsetMonth && condition.getOffsetDay() == n.offsetDay {
+  let condition:Condition = Condition(arguments:n.condition)
+  print("[Test Condition:\(n.condition)]", terminator:"")
+  let resultSet:(status:Int32, silence:Bool, direction:Int) = condition.getResult()
+  let dateSet:(targetDate:String?, destinationDate:String?) = condition.getDate()
+  let adjustCommand:String? = condition.getAdjustCommand()
+  if resultSet.status != n.status {
+    print("\n\u{001B}[0;31m status is \(resultSet.status). => NG\u{001B}[0;30m")
+  } else if resultSet.silence != n.silence {
+    print("\n\u{001B}[0;31m silence mode is \(resultSet.silence). => NG\u{001B}[0;30m")
+  } else if resultSet.direction != n.direction {
+    print("\n\u{001B}[0;31m direction is \(resultSet.direction). => NG\u{001B}[0;30m")
+  } else if dateSet.targetDate != n.target {
+    print("\n\u{001B}[0;31m target date is \(dateSet.targetDate). => NG\u{001B}[0;30m")
+  } else if dateSet.destinationDate != n.destination {
+    print("\n\u{001B}[0;31m destination date is \(dateSet.destinationDate). => NG\u{001B}[0;30m")
+  } else if adjustCommand != n.adjustCommand {
+    print("\n\u{001B}[0;31m adjust command is \(adjustCommand). => NG\u{001B}[0;30m")
+  } else {
     print("\u{001B}[0;32m => OK\u{001B}[0;30m")
-  } else if condition.getStatus() != n.status {
-    print("\u{001B}[0;31m => Status is NG:\(condition.getStatus())\u{001B}[0;30m")
-  } else if condition.getTargetYear() != n.targetYear {
-    print("\u{001B}[0;31m => TargetYear is NG:\(condition.getTargetYear())\u{001B}[0;30m")
-  } else if condition.getTargetMonth() != n.targetMonth {
-    print("\u{001B}[0;31m => TargetMonth is NG:\(condition.getTargetMonth())\u{001B}[0;30m")
-  } else if condition.getTargetDay() != n.targetDay {
-    print("\u{001B}[0;31m => TargetDay is NG:\(condition.getTargetDay())\u{001B}[0;30m")
-  } else if condition.getOffsetYear() != n.offsetYear {
-    print("\u{001B}[0;31m => OffsetYear is NG:\(condition.getOffsetYear())\u{001B}[0;30m")
-  } else if condition.getOffsetMonth() != n.offsetMonth {
-    print("\u{001B}[0;31m => OffsetMonth is NG:\(condition.getOffsetMonth())\u{001B}[0;30m")
-  } else if condition.getOffsetDay() != n.offsetDay {
-    print("\u{001B}[0;31m => OffsetDay is NG:\(condition.getOffsetDay())\u{001B}[0;30m")
   }
 }

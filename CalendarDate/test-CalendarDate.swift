@@ -1,60 +1,208 @@
 import Foundation
-// test-CalendarDate version 1.21, 2017.3.11, (c)2017 Takeru-chan
+// test-CalendarDate version 1.34, 2017.3.21, (c)2017 Takeru-chan
 // Released under the MIT license. http://opensource.org/licenses/MIT
 let calendar: Calendar = Calendar(identifier: Calendar.Identifier.gregorian)
-let Date20180201: Date = calendar.date(from: DateComponents(year:2018, month:2, day:1))!
-let Date20170301: Date = calendar.date(from: DateComponents(year:2017, month:3, day:1))!
-let Date20170202: Date = calendar.date(from: DateComponents(year:2017, month:2, day:2))!
-let Date20200504: Date = calendar.date(from: DateComponents(year:2020, month:5, day:4))!
-let Date20131029: Date = calendar.date(from: DateComponents(year:2013, month:10, day:29))!
-let Date15170201: Date = calendar.date(from: DateComponents(year:1517, month:2, day:1))!
-let Date20160229: Date = calendar.date(from: DateComponents(year:2016, month:2, day:29))!
-let Date15810201: Date = calendar.date(from: DateComponents(year:1581, month:2, day:1))!
-let Date15820201: Date = calendar.date(from: DateComponents(year:1582, month:2, day:1))!
-let Date15820101: Date = calendar.date(from: DateComponents(year:1582, month:1, day:1))!
-let Date99991201: Date = calendar.date(from: DateComponents(year:9999, month:12, day:1))!
-let Date99991231: Date = calendar.date(from: DateComponents(year:9999, month:12, day:31))!
-let Date100000101: Date = calendar.date(from: DateComponents(year:10000, month:1, day:1))!
-let Date120170202: Date = calendar.date(from: DateComponents(year:12017, month:2, day:2))!
-var calendarDate:CalendarDate
-var returnSet:(date:Date?, status:Int)
-var components:DateComponents
-let testDataSet: [(condition:String, targetYear:Int, targetMonth:Int, targetDay:Int, offsetYear:Int, offsetMonth:Int, offsetDay:Int, returnDate:Date, status:Int)] = [
-  (condition:"2017/2/1 after 1 year", targetYear:2017, targetMonth:2, targetDay:1, offsetYear:1, offsetMonth:0, offsetDay:0, returnDate:Date20180201, status:1),
-  (condition:"2017/2/1 after 1 month", targetYear:2017, targetMonth:2, targetDay:1, offsetYear:0, offsetMonth:1, offsetDay:0, returnDate:Date20170301, status:1),
-  (condition:"2017/2/1 after 1 day", targetYear:2017, targetMonth:2, targetDay:1, offsetYear:0, offsetMonth:0, offsetDay:1, returnDate:Date20170202, status:1),
-  (condition:"2017/2/1 after 3 years, 3 months and 3 days", targetYear:2017, targetMonth:2, targetDay:1, offsetYear:3, offsetMonth:3, offsetDay:3, returnDate:Date20200504, status:1),
-  (condition:"2017/2/1 before 3 years, 3 months and 3 days", targetYear:2017, targetMonth:2, targetDay:1, offsetYear:-3, offsetMonth:-3, offsetDay:-3, returnDate:Date20131029, status:-1),
-  (condition:"2017/2/1 before 500 years", targetYear:2017, targetMonth:2, targetDay:1, offsetYear:-500, offsetMonth:0, offsetDay:0, returnDate:Date15170201, status:0),
-  (condition:"2017/2/1 after 28 days", targetYear:2017, targetMonth:2, targetDay:1, offsetYear:0, offsetMonth:0, offsetDay:28, returnDate:Date20170301, status:1),
-  (condition:"2016/2/1 after 28 days", targetYear:2016, targetMonth:2, targetDay:1, offsetYear:0, offsetMonth:0, offsetDay:28, returnDate:Date20160229, status:1),
-  (condition:"1580/2/1 after 1 year", targetYear:1580, targetMonth:2, targetDay:1, offsetYear:1, offsetMonth:0, offsetDay:0, returnDate:Date15810201, status:0),
-  (condition:"1581/2/1 after 1 year", targetYear:1581, targetMonth:2, targetDay:1, offsetYear:1, offsetMonth:0, offsetDay:0, returnDate:Date15820201, status:0),
-  (condition:"1582/2/1 before 1 year", targetYear:1582, targetMonth:2, targetDay:1, offsetYear:-1, offsetMonth:0, offsetDay:0, returnDate:Date15810201, status:0),
-  (condition:"1582/2/1 before 1 month", targetYear:1582, targetMonth:2, targetDay:1, offsetYear:0, offsetMonth:-1, offsetDay:0, returnDate:Date15820101, status:-1),
-  (condition:"9999/12/1 after 1 month", targetYear:9999, targetMonth:12, targetDay:1, offsetYear:0, offsetMonth:1, offsetDay:0, returnDate:Date100000101, status:0),
-  (condition:"9999/12/1 after 30 days", targetYear:9999, targetMonth:12, targetDay:1, offsetYear:0, offsetMonth:0, offsetDay:30, returnDate:Date99991231, status:1),
-  (condition:"10000/1/1 before 1 month", targetYear:10000, targetMonth:1, targetDay:1, offsetYear:0, offsetMonth:-1, offsetDay:0, returnDate:Date99991201, status:1),
-  (condition:"12017/2/1 after 1 day", targetYear:12017, targetMonth:2, targetDay:1, offsetYear:0, offsetMonth:0, offsetDay:1, returnDate:Date120170202, status:0)]
-for n in testDataSet {
-  calendarDate = CalendarDate(targetYear:n.targetYear, targetMonth:n.targetMonth, targetDay:n.targetDay)
-  returnSet = calendarDate.get(offsetYear:n.offsetYear, offsetMonth:n.offsetMonth, offsetDay:n.offsetDay)
-  print("[Test condition: \(n.condition)]")
-  if returnSet.status != 0 {
-    print("\(calendar.component(.year, from:returnSet.date!))/\(calendar.component(.month, from:returnSet.date!))/\(calendar.component(.day, from:returnSet.date!))", terminator:"")
-    if returnSet.date! == n.returnDate && returnSet.status == n.status { print("\u{001B}[0;32m => OK\u{001B}[0;30m") } else { print("\u{001B}[0;31m => NG\u{001B}[0;30m") }
+let now:Date = Date()
+let year:Int = calendar.component(.year, from:now)
+let month:Int = calendar.component(.month, from:now)
+let day:Int = calendar.component(.day, from:now)
+let format:DateFormatter = DateFormatter()
+format.dateFormat = "EEE MMM d yyyy"
+let today:Date = calendar.date(from: DateComponents(year:year, month:month, day:day))!
+let today_after_ymwd:Date = calendar.date(from: DateComponents(year:(year + 1), month:(month + 1), day:(day + 8)))!
+let today_before_ymwd:Date = calendar.date(from: DateComponents(year:(year - 1), month:(month - 1), day:(day - 8)))!
+
+// Check blank instance
+var calendarDate:CalendarDate = CalendarDate()
+var returnSet:(baseDateString:String, offsetDateString:String,
+    differenceString:String, status:Int32) = calendarDate.get(silence:false)
+func checkResult(condition:String, baseDateString:String, offsetDateString:String,
+    differenceString:String, status:Int32) {
+  print(condition,terminator:"")
+  if returnSet.baseDateString == baseDateString && returnSet.offsetDateString == offsetDateString &&
+        returnSet.differenceString == differenceString && returnSet.status == status {
+    print("\u{001B}[0;32m => OK\u{001B}[0;30m \(returnSet)")
   } else {
-    print(returnSet, terminator:"")
-    if returnSet.date == nil { print("\u{001B}[0;32m => OK\u{001B}[0;30m") } else { print("\u{001B}[0;31m => NG\u{001B}[0;30m") }
+    print("\u{001B}[0;31m => NG\u{001B}[0;30m")
+    if returnSet.baseDateString != baseDateString { print("baseDateString=\(returnSet.baseDateString)") }
+    if returnSet.offsetDateString != offsetDateString { print("offsetDateString=\(returnSet.offsetDateString)") }
+    if returnSet.differenceString != differenceString { print("differenceString=\(returnSet.differenceString)") }
+    if returnSet.status != status { print("status=\(returnSet.status)") }
   }
 }
-calendarDate = CalendarDate(targetYear:0, targetMonth:0, targetDay:0)
-returnSet = calendarDate.get(offsetYear:1,offsetMonth:0,offsetDay:0)
-components = calendar.dateComponents([.year, .month, .day], from:returnSet.date!)
-print("Today on next year is \(components.year!)/\(components.month!)/\(components.day!)")
-returnSet = calendarDate.get(offsetYear:0,offsetMonth:1,offsetDay:0)
-components = calendar.dateComponents([.year, .month, .day], from:returnSet.date!)
-print("Today on next month is \(components.year!)/\(components.month!)/\(components.day!)")
-returnSet = calendarDate.get(offsetYear:0,offsetMonth:0,offsetDay:1)
-components = calendar.dateComponents([.year, .month, .day], from:returnSet.date!)
-print("Tomorrow is \(components.year!)/\(components.month!)/\(components.day!)")
+checkResult(condition:"[Blank CalendarDate instance]", baseDateString:"", offsetDateString:"",
+      differenceString:"", status:-1)
+
+// Confirm that any methods will fail unless running the generate method.
+calendarDate.offset(dateString:"20170201")
+returnSet = calendarDate.get(silence:false)
+checkResult(condition:"[Set 20170201 into offsetDate]", baseDateString:"", offsetDateString:"",
+      differenceString:"", status:-1)
+calendarDate.adjust(commandString:"ymwd", direction:1)
+returnSet = calendarDate.get(silence:false)
+checkResult(condition:"[Set ymwd into commandString and direction is 1]", baseDateString:"", offsetDateString:"",
+      differenceString:"", status:-1)
+calendarDate.adjust(commandString:"ymwd", direction:-1)
+returnSet = calendarDate.get(silence:false)
+checkResult(condition:"[Set ymwd into commandString and direction is -1]", baseDateString:"", offsetDateString:"",
+      differenceString:"", status:-1)
+calendarDate.adjust(commandString:"ymwd", direction:0)
+returnSet = calendarDate.get(silence:false)
+checkResult(condition:"[Set ymwd into commandString and direction is 0]", baseDateString:"", offsetDateString:"",
+      differenceString:"", status:-1)
+
+// Confirm that today's date will be set by running the generate method.
+calendarDate.generate(dateString:nil)
+returnSet = calendarDate.get(silence:false)
+checkResult(condition:"[Set nil into baseDate]", baseDateString:format.string(from:today), offsetDateString:"",
+      differenceString:"", status:0)
+
+// Confirm that some methods will success after running the generate method.
+calendarDate.offset(dateString:"20170201")
+returnSet = calendarDate.get(silence:false)
+checkResult(condition:"[Set 20170201 into offsetDate]", baseDateString:format.string(from:today),
+      offsetDateString:"Wed Feb 1 2017", differenceString:"", status:0)
+calendarDate.adjust(commandString:"ymwd", direction:1)
+returnSet = calendarDate.get(silence:false)
+checkResult(condition:"[Set ymwd into commandString and direction is 1]", baseDateString:format.string(from:today),
+      offsetDateString:format.string(from:today_after_ymwd), differenceString:"1year and 1month and 8days", status:0)
+calendarDate.adjust(commandString:"ymwd", direction:-1)
+returnSet = calendarDate.get(silence:false)
+checkResult(condition:"[Set ymwd into commandString and direction is -1]", baseDateString:format.string(from:today),
+      offsetDateString:format.string(from:today_before_ymwd), differenceString:"1year and 1month and 8days", status:0)
+
+// Confirm that adjust method with direction 0 will fail.
+calendarDate.adjust(commandString:"ymwd", direction:0)
+returnSet = calendarDate.get(silence:false)
+checkResult(condition:"[Set ymwd into commandString and direction is 0]", baseDateString:format.string(from:today),
+      offsetDateString:"", differenceString:"", status:8)
+
+// Confirmation of execution result on the available range.
+calendarDate.generate(dateString:"15811231")
+returnSet = calendarDate.get(silence:true)
+checkResult(condition:"[Set 15811231 into baseDate]", baseDateString:"", offsetDateString:"",
+      differenceString:"", status:7)
+calendarDate.generate(dateString:"15820101")
+returnSet = calendarDate.get(silence:true)
+checkResult(condition:"[Set 15820101 into baseDate]", baseDateString:"15820101", offsetDateString:"",
+      differenceString:"", status:0)
+calendarDate.adjust(commandString:"ymwd", direction:1)
+returnSet = calendarDate.get(silence:true)
+checkResult(condition:"[Set ymwd into commandString and direction is 1]", baseDateString:"15820101",
+      offsetDateString:"15830209", differenceString:"1year and 1month and 8days", status:0)
+calendarDate.adjust(commandString:"ymwd", direction:-1)
+returnSet = calendarDate.get(silence:true)
+checkResult(condition:"[Set ymwd into commandString and direction is -1]", baseDateString:"15820101",
+      offsetDateString:"", differenceString:"", status:7)
+calendarDate.generate(dateString:"100000101")
+returnSet = calendarDate.get(silence:true)
+checkResult(condition:"[Set 100000101 into baseDate]", baseDateString:"", offsetDateString:"",
+      differenceString:"", status:6)
+calendarDate.generate(dateString:"99991231")
+returnSet = calendarDate.get(silence:true)
+checkResult(condition:"[Set 99991231 into baseDate]", baseDateString:"99991231", offsetDateString:"",
+      differenceString:"", status:0)
+calendarDate.adjust(commandString:"ymwd", direction:-1)
+returnSet = calendarDate.get(silence:true)
+checkResult(condition:"[Set ymwd into commandString and direction is -1]", baseDateString:"99991231",
+      offsetDateString:"99981122", differenceString:"1year and 1month and 8days", status:0)
+calendarDate.adjust(commandString:"ymwd", direction:1)
+returnSet = calendarDate.get(silence:true)
+checkResult(condition:"[Set ymwd into commandString and direction is 1]", baseDateString:"99991231",
+      offsetDateString:"", differenceString:"", status:7)
+calendarDate.generate(dateString:"20170201")
+calendarDate.offset(dateString:"15820101")
+returnSet = calendarDate.get(silence:true)
+checkResult(condition:"[Set 15820101 into offsetDate]", baseDateString:"20170201", offsetDateString:"15820101",
+      differenceString:"", status:0)
+calendarDate.offset(dateString:"99991231")
+returnSet = calendarDate.get(silence:true)
+checkResult(condition:"[Set 99991231 into offsetDate]", baseDateString:"20170201", offsetDateString:"99991231",
+      differenceString:"", status:0)
+calendarDate.offset(dateString:"15811231")
+returnSet = calendarDate.get(silence:true)
+checkResult(condition:"[Set 15811231 into offsetDate]", baseDateString:"20170201", offsetDateString:"",
+      differenceString:"", status:7)
+calendarDate.generate(dateString:"20170201")
+calendarDate.offset(dateString:"100000101")
+returnSet = calendarDate.get(silence:true)
+checkResult(condition:"[Set 100000101 into offsetDate]", baseDateString:"20170201", offsetDateString:"",
+      differenceString:"", status:6)
+
+// Confirmation of execution result of the adjust method.
+calendarDate.generate(dateString:"20170201")
+calendarDate.adjust(commandString:"3y", direction:1)
+returnSet = calendarDate.get(silence:true)
+checkResult(condition:"[Set 3y into commandString and direction is 1]", baseDateString:"20170201",
+      offsetDateString:"20200201", differenceString:"3years", status:0)
+calendarDate.adjust(commandString:"3y", direction:-1)
+returnSet = calendarDate.get(silence:true)
+checkResult(condition:"[Set 3y into commandString and direction is -1]", baseDateString:"20170201",
+      offsetDateString:"20140201", differenceString:"3years", status:0)
+calendarDate.adjust(commandString:"2m", direction:1)
+returnSet = calendarDate.get(silence:true)
+checkResult(condition:"[Set 2m into commandString and direction is 1]", baseDateString:"20170201",
+      offsetDateString:"20170401", differenceString:"2months", status:0)
+calendarDate.adjust(commandString:"2m", direction:-1)
+returnSet = calendarDate.get(silence:true)
+checkResult(condition:"[Set 2m into commandString and direction is -1]", baseDateString:"20170201",
+      offsetDateString:"20161201", differenceString:"2months", status:0)
+calendarDate.adjust(commandString:"5w", direction:1)
+returnSet = calendarDate.get(silence:true)
+checkResult(condition:"[Set 5w into commandString and direction is 1]", baseDateString:"20170201",
+      offsetDateString:"20170308", differenceString:"35days", status:0)
+calendarDate.adjust(commandString:"5w", direction:-1)
+returnSet = calendarDate.get(silence:true)
+checkResult(condition:"[Set 5w into commandString and direction is -1]", baseDateString:"20170201",
+      offsetDateString:"20161228", differenceString:"35days", status:0)
+calendarDate.adjust(commandString:"8", direction:1)
+returnSet = calendarDate.get(silence:true)
+checkResult(condition:"[Set 8 into commandString and direction is 1]", baseDateString:"20170201",
+      offsetDateString:"20170209", differenceString:"8days", status:0)
+calendarDate.adjust(commandString:"8", direction:-1)
+returnSet = calendarDate.get(silence:true)
+checkResult(condition:"[Set 8 into commandString and direction is -1]", baseDateString:"20170201",
+      offsetDateString:"20170124", differenceString:"8days", status:0)
+calendarDate.adjust(commandString:"2y3m", direction:1)
+returnSet = calendarDate.get(silence:true)
+checkResult(condition:"[Set 2y3m into commandString and direction is 1]", baseDateString:"20170201",
+      offsetDateString:"20190501", differenceString:"2years and 3months", status:0)
+calendarDate.adjust(commandString:"2y3m", direction:-1)
+returnSet = calendarDate.get(silence:true)
+checkResult(condition:"[Set 2y3m into commandString and direction is -1]", baseDateString:"20170201",
+      offsetDateString:"20141101", differenceString:"2years and 3months", status:0)
+calendarDate.adjust(commandString:"m6d", direction:1)
+returnSet = calendarDate.get(silence:true)
+checkResult(condition:"[Set m6d into commandString and direction is 1]", baseDateString:"20170201",
+      offsetDateString:"20170307", differenceString:"1month and 6days", status:0)
+calendarDate.adjust(commandString:"m6d", direction:-1)
+returnSet = calendarDate.get(silence:true)
+checkResult(condition:"[Set m6d into commandString and direction is -1]", baseDateString:"20170201",
+      offsetDateString:"20161226", differenceString:"1month and 6days", status:0)
+calendarDate.adjust(commandString:"7y9", direction:1)
+returnSet = calendarDate.get(silence:true)
+checkResult(condition:"[Set 7y9 into commandString and direction is 1]", baseDateString:"20170201",
+      offsetDateString:"20240210", differenceString:"7years and 9days", status:0)
+calendarDate.adjust(commandString:"7y9", direction:-1)
+returnSet = calendarDate.get(silence:true)
+checkResult(condition:"[Set 7y9 into commandString and direction is -1]", baseDateString:"20170201",
+      offsetDateString:"20100123", differenceString:"7years and 9days", status:0)
+
+// Confirmation of some errors.
+calendarDate = CalendarDate()
+calendarDate.generate(dateString:"error_string")
+returnSet = calendarDate.get(silence:true)
+checkResult(condition:"[Set error_string into dateString]", baseDateString:"",
+      offsetDateString:"", differenceString:"", status:6)
+calendarDate = CalendarDate()
+calendarDate.generate(dateString:"20170201")
+calendarDate.offset(dateString:"error_string")
+returnSet = calendarDate.get(silence:true)
+checkResult(condition:"[Set error_string into offsetString]", baseDateString:"20170201",
+      offsetDateString:"", differenceString:"", status:6)
+calendarDate = CalendarDate()
+calendarDate.generate(dateString:"20170201")
+calendarDate.adjust(commandString:"error_string", direction:1)
+returnSet = calendarDate.get(silence:true)
+checkResult(condition:"[Set error_string into offsetString]", baseDateString:"20170201",
+      offsetDateString:"", differenceString:"", status:5)

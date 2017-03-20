@@ -1,63 +1,170 @@
 import Foundation
-// CalendarDate version 1.21a, 2017.3.11, (c)2017 Takeru-chan
+// CalendarDate version 1.34, 2017.3.21, (c)2017 Takeru-chan
 // Released under the MIT license. http://opensource.org/licenses/MIT
 // Usage:
-// let calendarDate:CalendarDate = CalendarDate(targetYear:Int, targetMonth:Int, targetDay:Int) // If arguments are 0, today is set automatically.
-// let returnDate:(date:Date?, status:Bool) = calendarDate.get(offsetYear: Int, offsetMonth: Int, offsetDay: Int)
+// let calendarDate:CalendarDate = CalendarDate()
+// calendarDate.generate(dateString:"20170317") // To set baseDate. If argument is nil, today is set automatically.
+// calendarDate.offset(dateString:"20200724") // To set offsetDate. If argument is nil, today is set automatically.
+// calendarDate.adjust(commandString:"3y2m1w", direction:-1) // To set offsetDate with difference from baseDate.
+//   // commandString for year is numeric with "y", for month is numeric with "m",
+//   //               for week is numeric with "w" and for day is numeric with "d".
+//   // direction for future is 1 and for past is -1.
+// let returnSet:(baseDateString:String, offsetDateString:String,
+//       differenceString:String, status:Int32) = calendarDate.get(silence:true)
+//   If silence is true, DateString format is "yyyyMMdd".
+//   If silence is false, DateString format is "EEE MMM d yyyy".
 //   Returned values are below.
-//   If status is 0, date is nil by something error.
-//   If status is 1, date is future.
-//   If status is -1, date is past.
+//   If status is 0, terminated normally.
+//   If status is 5, commandString format is illegal.
+//   If status is 6, dateString format is illegal.
+//   If status is 7, Specified term is out of range from A.D.1582 to A.D.9999.
+//   If status is 8, direction value is illegal.
 //
 class CalendarDate {
-  private var targetYear:Int
-  private var targetMonth:Int
-  private var targetDay:Int
-  private var returnDate:Date?
-  init (targetYear:Int, targetMonth:Int, targetDay:Int, returnDate:Date? = nil) {
-    self.targetYear = targetYear
-    self.targetMonth = targetMonth
-    self.targetDay = targetDay
-    self.returnDate = returnDate
+  private let calendar: Calendar
+  private let format:DateFormatter
+  private var baseDate:Date?
+  private var offsetDate:Date?
+  private var differenceYear:Int
+  private var differenceMonth:Int
+  private var differenceDay:Int
+  private var status:Int32
+  init (baseDate:Date? = nil, offsetDate:Date? = nil, status:Int32 = -1, format:DateFormatter = DateFormatter(),
+        differenceYear:Int = 0, differenceMonth:Int = 0, differenceDay:Int = 0,
+        calendar: Calendar = Calendar(identifier: Calendar.Identifier.gregorian)) {
+    self.calendar = calendar
+    self.format = format
+    self.baseDate = baseDate
+    self.offsetDate = offsetDate
+    self.differenceYear = differenceYear
+    self.differenceMonth = differenceMonth
+    self.differenceDay = differenceDay
+    self.status = status
   }
-  // This method changes targetDate into returnDate by offsetYear, offsetMonth and offsetDay.
-  // Gregorian calendar is available from 1582.
-  // If output date is out of range from 1582 to 9999, status is returned as false.
-  func get(offsetYear:Int, offsetMonth:Int, offsetDay:Int) -> (Date?, Int) {
-    let calendar: Calendar = Calendar(identifier: Calendar.Identifier.gregorian)
-    guard var targetDate:Date = calendar.date(from: DateComponents(year:targetYear, month:targetMonth, day:targetDay)) else { return (nil, 0) }
-    if targetYear == 0 && targetMonth == 0 && targetDay == 0 {
-      targetDate = Date()
-      targetYear = calendar.component(.year, from: targetDate)
-      targetMonth = calendar.component(.month, from: targetDate)
-      targetDay = calendar.component(.day, from: targetDate)
+  // This method sets baseDate by string with "yyyyMMdd".
+  func generate(dateString:String?) {
+    status = 0
+    baseDate = self.stringToDate(dateString:dateString)
+  }
+  // This method sets offsetDate by string with "yyyyMMdd".
+  func offset(dateString:String?) {
+    if status == 0 {
+      offsetDate = self.stringToDate(dateString:dateString)
     }
-    returnDate = targetDate
-    if 1582...9999 ~= targetYear {
-      if offsetYear != 0 {
-        if returnDate == nil { return (nil, 0) }
-        returnDate = calendar.date(byAdding: .year, value: offsetYear, to: returnDate!)
-      }
-      if offsetMonth != 0 {
-        if returnDate == nil { return (nil, 0) }
-        returnDate = calendar.date(byAdding: .month, value: offsetMonth, to: returnDate!)
-      }
-      if offsetDay != 0 {
-        if returnDate == nil { return (nil, 0) }
-        returnDate = calendar.date(byAdding: .day, value: offsetDay, to: returnDate!)
-      }
-      let returnYear: Int = calendar.component(.year, from:returnDate!)
-      if 1582...9999 ~= returnYear {
-        if targetDate < returnDate! {
-          return (returnDate, 1)
-        } else {
-          return (returnDate, -1)
-        }
-      } else {
-        return (nil, 0)
-      }
+  }
+  // This method is used by generate() or offset().
+  func stringToDate(dateString:String?) -> Date? {
+    var date:Date?
+    if dateString == nil {
+      let now:Date = Date()
+      let year:Int = calendar.component(.year, from: now)
+      let month:Int = calendar.component(.month, from: now)
+      let day:Int = calendar.component(.day, from: now)
+      date = calendar.date(from: DateComponents(year:year, month:month, day:day))!
     } else {
-      return (nil, 0)
+      format.dateFormat = "yyyyMMdd"
+      date = format.date(from: dateString!)
     }
+    if date == nil {
+      status = 6
+    } else {
+      let year:Int = calendar.component(.year, from:date!)
+      if !(1582...9999 ~= year) {
+        date = nil
+        status = 7
+      }
+    }
+    return date
+  }
+  // This method sets offsetDate by commandString with "nynmnwnd" and sets direction by 1/-1.
+  func adjust(commandString:String?, direction:Int) {
+    if status != 0 { return }
+    differenceYear = 0
+    differenceMonth = 0
+    differenceDay = 0
+    offsetDate = nil
+    if direction != 1 && direction != -1 {
+      status = 8
+      return
+    }
+    var buffer:String = ""
+    for char in commandString!.characters {
+      switch char {
+      case "d","w","m","y":
+        if buffer == "" { buffer = "1" }
+        if char == "d" { differenceDay += Int(buffer)! }
+        if char == "w" { differenceDay += Int(buffer)! * 7 }
+        if char == "m" { differenceMonth += Int(buffer)! }
+        if char == "y" { differenceYear += Int(buffer)! }
+        buffer = ""
+      case "0"..."9":
+        buffer += String(char)
+      default:
+        differenceYear = 0
+        differenceMonth = 0
+        differenceDay = 0
+        status = 5
+        return
+      }
+    }
+    if buffer != "" {
+      differenceDay += Int(buffer)!
+      buffer = ""
+    }
+    offsetDate = baseDate
+    offsetDate = calendar.date(byAdding: .year, value: (differenceYear * direction), to: offsetDate!)
+    offsetDate = calendar.date(byAdding: .month, value: (differenceMonth * direction), to: offsetDate!)
+    offsetDate = calendar.date(byAdding: .day, value: (differenceDay * direction), to: offsetDate!)
+    let year:Int = calendar.component(.year, from:offsetDate!)
+    if !(1582...9999 ~= year) {
+      differenceYear = 0
+      differenceMonth = 0
+      differenceDay = 0
+      offsetDate = nil
+      status = 7
+    }
+  }
+  // This method gets results data set.
+  func get(silence:Bool) -> (baseDateString:String, offsetDateString:String,
+        differenceString:String, status:Int32) {
+    var baseDateString:String = ""
+    var offsetDateString:String = ""
+    var differenceString:String = ""
+    if silence {
+      format.dateFormat = "yyyyMMdd"
+    } else {
+      format.dateFormat = "EEE MMM d yyyy"
+    }
+    if baseDate != nil { baseDateString = format.string(from:baseDate!) }
+    if offsetDate != nil { offsetDateString = format.string(from:offsetDate!) }
+    switch differenceYear {
+      case 0:
+        break
+      case 1:
+        differenceString += "1year"
+      default:
+        differenceString += "\(differenceYear)years"
+    }
+    switch differenceMonth {
+      case 0:
+        break
+      case 1:
+        if differenceString != "" { differenceString += " and " }
+        differenceString += "1month"
+      default:
+        if differenceString != "" { differenceString += " and " }
+        differenceString += "\(differenceMonth)months"
+    }
+    switch differenceDay {
+      case 0:
+        break
+      case 1:
+        if differenceString != "" { differenceString += " and " }
+        differenceString += "1day"
+      default:
+        if differenceString != "" { differenceString += " and " }
+        differenceString += "\(differenceDay)days"
+    }
+    return (baseDateString, offsetDateString, differenceString, status)
   }
 }
