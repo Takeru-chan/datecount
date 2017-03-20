@@ -1,5 +1,5 @@
 import Foundation
-// CalendarDate version 1.31, 2017.3.19, (c)2017 Takeru-chan
+// CalendarDate version 1.32, 2017.3.20, (c)2017 Takeru-chan
 // Released under the MIT license. http://opensource.org/licenses/MIT
 // Usage:
 // let calendarDate:CalendarDate = CalendarDate()
@@ -9,7 +9,9 @@ import Foundation
 //   // commandString for year is numeric with "y", for month is numeric with "m",
 //   //               for week is numeric with "w" and for day is numeric with "d".
 //   // direction for future is 1 and for past is -1.
-// let returnDate:(baseDate:Date?, offsetDate:Date?, status:Int32) = calendarDate.get()
+// let returnSet:(baseDateString:String, offsetDateString:String, status:Int32) = calendarDate.get(silence:true)
+//   If silence is true, DateString format is "yyyyMMdd".
+//   If silence is false, DateString format is "EEE MMM d yyyy".
 //   Returned values are below.
 //   If status is 0, terminated normally.
 //   If status is 5, commandString format is illegal.
@@ -20,12 +22,14 @@ import Foundation
 //
 class CalendarDate {
   private let calendar: Calendar
+  private let format:DateFormatter
   private var baseDate:Date?
   private var offsetDate:Date?
   private var status:Int32
-  init (baseDate:Date? = nil, offsetDate:Date? = nil, status:Int32 = 0,
+  init (baseDate:Date? = nil, offsetDate:Date? = nil, status:Int32 = 0, format:DateFormatter = DateFormatter(),
         calendar: Calendar = Calendar(identifier: Calendar.Identifier.gregorian)) {
     self.calendar = calendar
+    self.format = format
     self.baseDate = baseDate
     self.offsetDate = offsetDate
     self.status = status
@@ -50,7 +54,6 @@ class CalendarDate {
       let day:Int = calendar.component(.day, from: now)
       date = calendar.date(from: DateComponents(year:year, month:month, day:day))!
     } else {
-      let format:DateFormatter = DateFormatter()
       format.dateFormat = "yyyyMMdd"
       date = format.date(from: dateString!)
     }
@@ -78,17 +81,17 @@ class CalendarDate {
       return
     }
     var buffer:String = ""
-    var offsetYear:Int = 0
-    var offsetMonth:Int = 0
-    var offsetDay:Int = 0
+    var differenceYear:Int = 0
+    var differenceMonth:Int = 0
+    var differenceDay:Int = 0
     for char in commandString!.characters {
       switch char {
       case "d","w","m","y":
         if buffer == "" { buffer = "1" }
-        if char == "d" { offsetDay += Int(buffer)! }
-        if char == "w" { offsetDay += Int(buffer)! * 7 }
-        if char == "m" { offsetMonth += Int(buffer)! }
-        if char == "y" { offsetYear += Int(buffer)! }
+        if char == "d" { differenceDay += Int(buffer)! }
+        if char == "w" { differenceDay += Int(buffer)! * 7 }
+        if char == "m" { differenceMonth += Int(buffer)! }
+        if char == "y" { differenceYear += Int(buffer)! }
         buffer = ""
       case "0"..."9":
         buffer += String(char)
@@ -98,13 +101,13 @@ class CalendarDate {
       }
     }
     if buffer != "" {
-      offsetDay += Int(buffer)!
+      differenceDay += Int(buffer)!
       buffer = ""
     }
     offsetDate = baseDate
-    offsetDate = calendar.date(byAdding: .year, value: (offsetYear * direction), to: offsetDate!)
-    offsetDate = calendar.date(byAdding: .month, value: (offsetMonth * direction), to: offsetDate!)
-    offsetDate = calendar.date(byAdding: .day, value: (offsetDay * direction), to: offsetDate!)
+    offsetDate = calendar.date(byAdding: .year, value: (differenceYear * direction), to: offsetDate!)
+    offsetDate = calendar.date(byAdding: .month, value: (differenceMonth * direction), to: offsetDate!)
+    offsetDate = calendar.date(byAdding: .day, value: (differenceDay * direction), to: offsetDate!)
     let year:Int = calendar.component(.year, from:offsetDate!)
     if !(1582...9999 ~= year) {
       offsetDate = nil
@@ -112,7 +115,16 @@ class CalendarDate {
     }
   }
   // This method gets results data set.
-  func get() -> (baseDate:Date?, offsetDate:Date?, status:Int32) {
-    return (baseDate, offsetDate, status)
+  func get(silence:Bool) -> (baseDateString:String, offsetDateString:String, status:Int32) {
+    var baseDateString:String = ""
+    var offsetDateString:String = ""
+    if silence {
+      format.dateFormat = "yyyyMMdd"
+    } else {
+      format.dateFormat = "EEE MMM d yyyy"
+    }
+    if baseDate != nil { baseDateString = format.string(from:baseDate!) }
+    if offsetDate != nil { offsetDateString = format.string(from:offsetDate!) }
+    return (baseDateString, offsetDateString, status)
   }
 }
