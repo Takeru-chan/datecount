@@ -1,5 +1,5 @@
 import Foundation
-// CalendarDate version 1.32, 2017.3.20, (c)2017 Takeru-chan
+// CalendarDate version 1.33, 2017.3.20, (c)2017 Takeru-chan
 // Released under the MIT license. http://opensource.org/licenses/MIT
 // Usage:
 // let calendarDate:CalendarDate = CalendarDate()
@@ -9,7 +9,8 @@ import Foundation
 //   // commandString for year is numeric with "y", for month is numeric with "m",
 //   //               for week is numeric with "w" and for day is numeric with "d".
 //   // direction for future is 1 and for past is -1.
-// let returnSet:(baseDateString:String, offsetDateString:String, status:Int32) = calendarDate.get(silence:true)
+// let returnSet:(baseDateString:String, offsetDateString:String,
+//       differenceString:String, status:Int32) = calendarDate.get(silence:true)
 //   If silence is true, DateString format is "yyyyMMdd".
 //   If silence is false, DateString format is "EEE MMM d yyyy".
 //   Returned values are below.
@@ -25,13 +26,20 @@ class CalendarDate {
   private let format:DateFormatter
   private var baseDate:Date?
   private var offsetDate:Date?
+  private var differenceYear:Int
+  private var differenceMonth:Int
+  private var differenceDay:Int
   private var status:Int32
   init (baseDate:Date? = nil, offsetDate:Date? = nil, status:Int32 = 0, format:DateFormatter = DateFormatter(),
+        differenceYear:Int = 0, differenceMonth:Int = 0, differenceDay:Int = 0,
         calendar: Calendar = Calendar(identifier: Calendar.Identifier.gregorian)) {
     self.calendar = calendar
     self.format = format
     self.baseDate = baseDate
     self.offsetDate = offsetDate
+    self.differenceYear = differenceYear
+    self.differenceMonth = differenceMonth
+    self.differenceDay = differenceDay
     self.status = status
   }
   // This method sets baseDate by string with "yyyyMMdd".
@@ -71,6 +79,9 @@ class CalendarDate {
   // This method sets offsetDate by commandString with "nynmnwnd" and sets direction by 1/-1.
   func adjust(commandString:String?, direction:Int) {
     status = 0
+    differenceYear = 0
+    differenceMonth = 0
+    differenceDay = 0
     offsetDate = nil
     if baseDate == nil {
       status = 9
@@ -81,9 +92,6 @@ class CalendarDate {
       return
     }
     var buffer:String = ""
-    var differenceYear:Int = 0
-    var differenceMonth:Int = 0
-    var differenceDay:Int = 0
     for char in commandString!.characters {
       switch char {
       case "d","w","m","y":
@@ -96,6 +104,9 @@ class CalendarDate {
       case "0"..."9":
         buffer += String(char)
       default:
+        differenceYear = 0
+        differenceMonth = 0
+        differenceDay = 0
         status = 5
         return
       }
@@ -110,14 +121,19 @@ class CalendarDate {
     offsetDate = calendar.date(byAdding: .day, value: (differenceDay * direction), to: offsetDate!)
     let year:Int = calendar.component(.year, from:offsetDate!)
     if !(1582...9999 ~= year) {
+      differenceYear = 0
+      differenceMonth = 0
+      differenceDay = 0
       offsetDate = nil
       status = 7
     }
   }
   // This method gets results data set.
-  func get(silence:Bool) -> (baseDateString:String, offsetDateString:String, status:Int32) {
+  func get(silence:Bool) -> (baseDateString:String, offsetDateString:String,
+        differenceString:String, status:Int32) {
     var baseDateString:String = ""
     var offsetDateString:String = ""
+    var differenceString:String = ""
     if silence {
       format.dateFormat = "yyyyMMdd"
     } else {
@@ -125,6 +141,34 @@ class CalendarDate {
     }
     if baseDate != nil { baseDateString = format.string(from:baseDate!) }
     if offsetDate != nil { offsetDateString = format.string(from:offsetDate!) }
-    return (baseDateString, offsetDateString, status)
+    switch differenceYear {
+      case 0:
+        break
+      case 1:
+        differenceString += "1Year"
+      default:
+        differenceString += "\(differenceYear)Years"
+    }
+    switch differenceMonth {
+      case 0:
+        break
+      case 1:
+        if differenceString != "" { differenceString += " and " }
+        differenceString += "1Month"
+      default:
+        if differenceString != "" { differenceString += " and " }
+        differenceString += "\(differenceMonth)Months"
+    }
+    switch differenceDay {
+      case 0:
+        break
+      case 1:
+        if differenceString != "" { differenceString += " and " }
+        differenceString += "1Day"
+      default:
+        if differenceString != "" { differenceString += " and " }
+        differenceString += "\(differenceDay)Days"
+    }
+    return (baseDateString, offsetDateString, differenceString, status)
   }
 }
