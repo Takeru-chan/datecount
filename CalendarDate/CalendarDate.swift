@@ -1,5 +1,5 @@
 import Foundation
-// CalendarDate version 1.33, 2017.3.20, (c)2017 Takeru-chan
+// CalendarDate version 1.34, 2017.3.21, (c)2017 Takeru-chan
 // Released under the MIT license. http://opensource.org/licenses/MIT
 // Usage:
 // let calendarDate:CalendarDate = CalendarDate()
@@ -19,7 +19,6 @@ import Foundation
 //   If status is 6, dateString format is illegal.
 //   If status is 7, Specified term is out of range from A.D.1582 to A.D.9999.
 //   If status is 8, direction value is illegal.
-//   If status is 9, adjust method error.
 //
 class CalendarDate {
   private let calendar: Calendar
@@ -30,7 +29,7 @@ class CalendarDate {
   private var differenceMonth:Int
   private var differenceDay:Int
   private var status:Int32
-  init (baseDate:Date? = nil, offsetDate:Date? = nil, status:Int32 = 0, format:DateFormatter = DateFormatter(),
+  init (baseDate:Date? = nil, offsetDate:Date? = nil, status:Int32 = -1, format:DateFormatter = DateFormatter(),
         differenceYear:Int = 0, differenceMonth:Int = 0, differenceDay:Int = 0,
         calendar: Calendar = Calendar(identifier: Calendar.Identifier.gregorian)) {
     self.calendar = calendar
@@ -49,8 +48,9 @@ class CalendarDate {
   }
   // This method sets offsetDate by string with "yyyyMMdd".
   func offset(dateString:String?) {
-    status = 0
-    offsetDate = self.stringToDate(dateString:dateString)
+    if status == 0 {
+      offsetDate = self.stringToDate(dateString:dateString)
+    }
   }
   // This method is used by generate() or offset().
   func stringToDate(dateString:String?) -> Date? {
@@ -78,15 +78,11 @@ class CalendarDate {
   }
   // This method sets offsetDate by commandString with "nynmnwnd" and sets direction by 1/-1.
   func adjust(commandString:String?, direction:Int) {
-    status = 0
+    if status != 0 { return }
     differenceYear = 0
     differenceMonth = 0
     differenceDay = 0
     offsetDate = nil
-    if baseDate == nil {
-      status = 9
-      return
-    }
     if direction != 1 && direction != -1 {
       status = 8
       return
@@ -145,29 +141,29 @@ class CalendarDate {
       case 0:
         break
       case 1:
-        differenceString += "1Year"
+        differenceString += "1year"
       default:
-        differenceString += "\(differenceYear)Years"
+        differenceString += "\(differenceYear)years"
     }
     switch differenceMonth {
       case 0:
         break
       case 1:
         if differenceString != "" { differenceString += " and " }
-        differenceString += "1Month"
+        differenceString += "1month"
       default:
         if differenceString != "" { differenceString += " and " }
-        differenceString += "\(differenceMonth)Months"
+        differenceString += "\(differenceMonth)months"
     }
     switch differenceDay {
       case 0:
         break
       case 1:
         if differenceString != "" { differenceString += " and " }
-        differenceString += "1Day"
+        differenceString += "1day"
       default:
         if differenceString != "" { differenceString += " and " }
-        differenceString += "\(differenceDay)Days"
+        differenceString += "\(differenceDay)days"
     }
     return (baseDateString, offsetDateString, differenceString, status)
   }
