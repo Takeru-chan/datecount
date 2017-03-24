@@ -1,6 +1,6 @@
 import Foundation
 let screen:Screen = Screen()
-let version:String = "datecount ver.1.50  2017.3.21 (c)Takeru.\n"
+let version:String = "datecount ver.1.60  2017.3.24 (c)Takeru.\n"
 let help:String = "Usage:\n    datecount -[a|A|b|B] [n(d)][(n)d][(n)w][(n)m][(n)y] [yyyymmdd]\n    datecount -h\n    datecount -v\n\nDescription:\n    The datecount utility counts dates.\n    To return the date from the indicated date.\n\n    -a    Return after date from the indicated date.\n    -A    Return after date from the indicated date.(Silence mode)\n    -b    Return before date from the indicated date.\n    -B    Return before date from the indicated date.(Silence mode)\n    -h    Display this credit.\n    -v    Display version.\n\n    Command to forward/backward the date should be combined\n    numerics and unit symbols. If numerics are omitted,\n    1 is applied for its unit.\n\n     d    Unit for day.(Symbol may be omitted.)\n     w    Unit for week.\n     m    Unit for month.\n     y    Unit for year.\n\n    Date format should be four digits for year, two digits\n    for month and two ditits for day. And effective range\n    is from A.D.1582 to A.D.9999.\n\n"
 let license:String = "    Copyright (c) 2015 Takeru.\n    Released under MIT license\n    http://opensource.org/licenses/MIT\n"
 let needOptionError:String = "datecount: Some options are needed.\n"
@@ -20,23 +20,46 @@ switch resultSet.status {
     let adjustCommand:String? = condition.getAdjustCommand()
     let calendarDate:CalendarDate = CalendarDate()
     calendarDate.generate(dateString:dateSet.targetDate)
-    calendarDate.adjust(commandString:adjustCommand, direction:resultSet.direction)
+    if resultSet.direction != 0 {
+      calendarDate.adjust(commandString:adjustCommand, direction:resultSet.direction)
+    } else {
+      calendarDate.offset(dateString:dateSet.destinationDate)
+    }
     let returnDate:(baseDateString:String, offsetDateString:String,
-        differenceString:String, status:Int32) = calendarDate.get(silence:resultSet.silence)
+        differenceString:String, dates:Int, status:Int32) = calendarDate.get(silence:resultSet.silence)
     if returnDate.status == 0 {
-      if returnDate.differenceString != "" {
-        if resultSet.direction == -1 {
-          leadText = "\(returnDate.differenceString) \(direction[0]) \(returnDate.baseDateString)"
+      if resultSet.direction != 0 {
+        if returnDate.differenceString != "" {
+          if resultSet.direction == 1 {
+            leadText = "\(returnDate.differenceString) \(direction[1]) \(returnDate.baseDateString) is \(returnDate.offsetDateString)\n"
+          } else {
+            leadText = "\(returnDate.differenceString) \(direction[0]) \(returnDate.baseDateString) is \(returnDate.offsetDateString)\n"
+          }
         } else {
-          leadText = "\(returnDate.differenceString) \(direction[1]) \(returnDate.baseDateString)"
+          leadText = "Today is \(returnDate.offsetDateString)\n"
         }
       } else {
-        leadText = "Today"
+        if returnDate.dates == 0 {
+          leadText = "\(returnDate.offsetDateString) is today\n"
+        } else if returnDate.dates == -1 {
+          leadText = "\(returnDate.offsetDateString) is 1day before \(returnDate.baseDateString)\n"
+        } else if returnDate.dates < -1 {
+          leadText = "\(returnDate.offsetDateString) is \(abs(returnDate.dates))days before \(returnDate.baseDateString)\n"
+        } else if returnDate.dates == 1 {
+          leadText = "\(returnDate.offsetDateString) is 1day after \(returnDate.baseDateString)\n"
+        } else {
+          leadText = "\(returnDate.offsetDateString) is \(returnDate.dates)days after \(returnDate.baseDateString)\n"
+        }
       }
+
       if resultSet.silence {
-        screen.write(message:returnDate.offsetDateString)
+        if resultSet.direction == 0 {
+          screen.write(message:String(returnDate.dates))
+        } else {
+          screen.write(message:returnDate.offsetDateString)
+        }
       } else {
-        screen.write(message:"\(leadText) is \(returnDate.offsetDateString)\n")
+        screen.write(message:leadText)
       }
     } else if returnDate.status == 5 {
       screen.write(message:dateCommandError+leadHelpMessage)
@@ -44,8 +67,10 @@ switch resultSet.status {
       screen.write(message:dateFormatError+leadHelpMessage)
     } else if returnDate.status == 7 {
       screen.write(message:dateRangeError+leadHelpMessage)
+    } else if returnDate.status == 8 {
+      screen.write(message:"\(returnDate.dates)")
     }
-		exit(Int32(returnDate.status))
+    exit(Int32(returnDate.status))
   case 1:
     screen.write(message:version)
   case 2:

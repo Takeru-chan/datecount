@@ -1,5 +1,5 @@
 import Foundation
-// test-CalendarDate version 1.34, 2017.3.21, (c)2017 Takeru-chan
+// test-CalendarDate version 1.35, 2017.3.24, (c)2017 Takeru-chan
 // Released under the MIT license. http://opensource.org/licenses/MIT
 let calendar: Calendar = Calendar(identifier: Calendar.Identifier.gregorian)
 let now:Date = Date()
@@ -15,7 +15,7 @@ let today_before_ymwd:Date = calendar.date(from: DateComponents(year:(year - 1),
 // Check blank instance
 var calendarDate:CalendarDate = CalendarDate()
 var returnSet:(baseDateString:String, offsetDateString:String,
-    differenceString:String, status:Int32) = calendarDate.get(silence:false)
+    differenceString:String, dates:Int, status:Int32) = calendarDate.get(silence:false)
 func checkResult(condition:String, baseDateString:String, offsetDateString:String,
     differenceString:String, status:Int32) {
   print(condition,terminator:"")
@@ -206,3 +206,34 @@ calendarDate.adjust(commandString:"error_string", direction:1)
 returnSet = calendarDate.get(silence:true)
 checkResult(condition:"[Set error_string into offsetString]", baseDateString:"20170201",
       offsetDateString:"", differenceString:"", status:5)
+
+// Confirmation of counting dates.
+calendarDate.generate(dateString:"20170201")
+calendarDate.offset(dateString:"20160201")
+returnSet = calendarDate.get(silence:true)
+  print("[Set 20170201 to baseDateString and set 20160201 to offsetDateString]",terminator:"")
+  if returnSet.baseDateString == "20170201" && returnSet.offsetDateString == "20160201" &&
+        returnSet.differenceString == "" && returnSet.dates == -366 && returnSet.status == 0 {
+    print("\u{001B}[0;32m => OK\u{001B}[0;30m \(returnSet)")
+  } else {
+    print("\u{001B}[0;31m => NG\u{001B}[0;30m")
+    if returnSet.baseDateString != "20170201" { print("baseDateString=\(returnSet.baseDateString)") }
+    if returnSet.offsetDateString != "20160201" { print("offsetDateString=\(returnSet.offsetDateString)") }
+    if returnSet.differenceString != "" { print("differenceString=\(returnSet.differenceString)") }
+    if returnSet.dates != -366 { print("status=\(returnSet.status)") }
+    if returnSet.status != 0 { print("status=\(returnSet.status)") }
+  }
+calendarDate.offset(dateString:"20180201")
+returnSet = calendarDate.get(silence:true)
+  print("[Set 20170201 to baseDateString and set 20180201 to offsetDateString]",terminator:"")
+  if returnSet.baseDateString == "20170201" && returnSet.offsetDateString == "20180201" &&
+        returnSet.differenceString == "" && returnSet.dates == 365 && returnSet.status == 0 {
+    print("\u{001B}[0;32m => OK\u{001B}[0;30m \(returnSet)")
+  } else {
+    print("\u{001B}[0;31m => NG\u{001B}[0;30m")
+    if returnSet.baseDateString != "20170201" { print("baseDateString=\(returnSet.baseDateString)") }
+    if returnSet.offsetDateString != "20180201" { print("offsetDateString=\(returnSet.offsetDateString)") }
+    if returnSet.differenceString != "" { print("differenceString=\(returnSet.differenceString)") }
+    if returnSet.dates != 365 { print("status=\(returnSet.status)") }
+    if returnSet.status != 0 { print("status=\(returnSet.status)") }
+  }
