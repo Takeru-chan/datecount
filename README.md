@@ -1,19 +1,21 @@
 # Date count command for macOS.
 macOSのコマンドラインで動く日付計算コマンドです。  
-指定日を起点に指定した日数前または日数後の日付を返します。
+指定日を起点に指定した日数前または日数後の日付、または指定した日付間の日数を返します。
 （指定日を省略すると今日を起点に計算します）
 ただし計算可能な期間は西暦1582年から9999年の間のみ。  
 
 ## Usage | 使い方
-datecount switch command [date]  
+datecount switch command|toDate [fromDate]  
 
 switchは以下のとおり。  
-- a：dateで指定した日付に対し、commandで指定した期間経過後の日付を返す  
-- A：dateで指定した日付に対し、commandで指定した期間経過後の日付を返す（yyyyMMdd形式）  
-- b：dateで指定した日付に対し、commandで指定した期間以前の日付を返す  
-- B：dateで指定した日付に対し、commandで指定した期間以前の日付を返す（yyyyMMdd形式）  
-- v：バージョン番号を返します  
-- h：ヘルプを表示します  
+- -a：fromDateで指定した日付に対し、commandで指定した期間経過後の日付を返す  
+- -A：fromDateで指定した日付に対し、commandで指定した期間経過後の日付を返す（yyyyMMdd形式）  
+- -b：fromDateで指定した日付に対し、commandで指定した期間以前の日付を返す  
+- -B：fromDateで指定した日付に対し、commandで指定した期間以前の日付を返す（yyyyMMdd形式）  
+- -c：fromDateで指定した日付に対し、toDateで指定した日付までの日数を返す  
+- -C：fromDateで指定した日付に対し、toDateで指定した日付までの日数を返す（過去は負数）  
+- -v：バージョン番号を返します  
+- -h：ヘルプを表示します  
 
 commandは以下単位記号と数字の組み合わせで指定します。  
 - d：与える正の整数が日数である場合  
@@ -58,6 +60,9 @@ $ ./datecount -b w 20170101
 
 $ ./datecount -b 3 20170101
 3days before Jan 1 2017 is Thr Dec 29 2016
+
+$ ./datecount -c 20200724
+Fri Jul 24 2020 is 1218days after Fri Mar 24 2017
 ```
 
 ## License
