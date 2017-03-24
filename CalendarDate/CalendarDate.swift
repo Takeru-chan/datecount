@@ -1,5 +1,5 @@
 import Foundation
-// CalendarDate version 1.34, 2017.3.21, (c)2017 Takeru-chan
+// CalendarDate version 1.35, 2017.3.24, (c)2017 Takeru-chan
 // Released under the MIT license. http://opensource.org/licenses/MIT
 // Usage:
 // let calendarDate:CalendarDate = CalendarDate()
@@ -10,7 +10,7 @@ import Foundation
 //   //               for week is numeric with "w" and for day is numeric with "d".
 //   // direction for future is 1 and for past is -1.
 // let returnSet:(baseDateString:String, offsetDateString:String,
-//       differenceString:String, status:Int32) = calendarDate.get(silence:true)
+//       differenceString:String, dates:Int, status:Int32) = calendarDate.get(silence:true)
 //   If silence is true, DateString format is "yyyyMMdd".
 //   If silence is false, DateString format is "EEE MMM d yyyy".
 //   Returned values are below.
@@ -83,7 +83,7 @@ class CalendarDate {
     differenceMonth = 0
     differenceDay = 0
     offsetDate = nil
-    if direction != 1 && direction != -1 {
+    if !(direction == -1 || direction == 1) {
       status = 8
       return
     }
@@ -126,10 +126,11 @@ class CalendarDate {
   }
   // This method gets results data set.
   func get(silence:Bool) -> (baseDateString:String, offsetDateString:String,
-        differenceString:String, status:Int32) {
+        differenceString:String, dates:Int, status:Int32) {
     var baseDateString:String = ""
     var offsetDateString:String = ""
     var differenceString:String = ""
+    var dates:Int = 0
     if silence {
       format.dateFormat = "yyyyMMdd"
     } else {
@@ -165,6 +166,9 @@ class CalendarDate {
         if differenceString != "" { differenceString += " and " }
         differenceString += "\(differenceDay)days"
     }
-    return (baseDateString, offsetDateString, differenceString, status)
+    if baseDate != nil && offsetDate != nil {
+      dates = calendar.dateComponents([.day], from:baseDate!, to:offsetDate!).day!
+    }
+    return (baseDateString, offsetDateString, differenceString, dates, status)
   }
 }
