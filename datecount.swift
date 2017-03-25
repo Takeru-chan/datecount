@@ -1,86 +1,85 @@
 import Foundation
 let screen:Screen = Screen()
-let version:String = "datecount ver.1.60  2017.3.24 (c)Takeru.\n"
-let help:String = "Usage:\n    datecount -[a|A|b|B] [n(d)][(n)d][(n)w][(n)m][(n)y] [yyyymmdd]\n    datecount -h\n    datecount -v\n\nDescription:\n    The datecount utility counts dates.\n    To return the date from the indicated date.\n\n    -a    Return after date from the indicated date.\n    -A    Return after date from the indicated date.(Silence mode)\n    -b    Return before date from the indicated date.\n    -B    Return before date from the indicated date.(Silence mode)\n    -h    Display this credit.\n    -v    Display version.\n\n    Command to forward/backward the date should be combined\n    numerics and unit symbols. If numerics are omitted,\n    1 is applied for its unit.\n\n     d    Unit for day.(Symbol may be omitted.)\n     w    Unit for week.\n     m    Unit for month.\n     y    Unit for year.\n\n    Date format should be four digits for year, two digits\n    for month and two ditits for day. And effective range\n    is from A.D.1582 to A.D.9999.\n\n"
-let license:String = "    Copyright (c) 2015 Takeru.\n    Released under MIT license\n    http://opensource.org/licenses/MIT\n"
-let needOptionError:String = "datecount: Some options are needed.\n"
-let unknownError:String = "datecount: Unknown option.\n"
-let dateCommandError:String = "datecount: Unknown command format.\n"
-let dateFormatError:String = "datecount: Unknown date format.\n"
-let dateRangeError:String = "datecount: Specified term is out of range from A.D.1582 to A.D.9999.\n"
 let leadHelpMessage:String = "For more information, type 'datecount -h'.\n"
+var message:[String] = []
+message.append("")
+message.append("datecount ver.1.61  2017.3.25 (c)Takeru.\n")
+message.append("\(message[1])")
+message[2] += "Usage:\n"
+message[2] += "    datecount -[a|A|b|B] [n(d)][(n)d][(n)w][(n)m][(n)y] [yyyymmdd]\n"
+message[2] += "    datecount -h\n"
+message[2] += "    datecount -v\n\n"
+message[2] += "Description:\n"
+message[2] += "    The datecount utility counts dates.\n"
+message[2] += "    To return the date from the indicated date.\n\n"
+message[2] += "    -a    Return after date from the indicated date.\n"
+message[2] += "    -A    Return after date from the indicated date.(Silence mode)\n"
+message[2] += "    -b    Return before date from the indicated date.\n"
+message[2] += "    -B    Return before date from the indicated date.(Silence mode)\n"
+message[2] += "    -h    Display this credit.\n"
+message[2] += "    -v    Display version.\n\n"
+message[2] += "    Command to forward/backward the date should be combined\n"
+message[2] += "    numerics and unit symbols. If numerics are omitted,\n"
+message[2] += "    1 is applied for its unit.\n\n"
+message[2] += "     d    Unit for day.(Symbol may be omitted.)\n"
+message[2] += "     w    Unit for week.\n"
+message[2] += "     m    Unit for month.\n"
+message[2] += "     y    Unit for year.\n\n"
+message[2] += "    Date format should be four digits for year, two digits\n"
+message[2] += "    for month and two ditits for day. And effective range\n"
+message[2] += "    is from A.D.1582 to A.D.9999.\n\n"
+message[2] += "    Copyright (c) 2015 Takeru.\n"
+message[2] += "    Released under MIT license\n"
+message[2] += "    http://opensource.org/licenses/MIT\n"
+message.append("datecount: Some options are needed.\n\(leadHelpMessage)")
+message.append("datecount: Unknown option.\n\(leadHelpMessage)")
+message.append("datecount: Unknown command format.\n\(leadHelpMessage)")
+message.append("datecount: Unknown date format.\n\(leadHelpMessage)")
+message.append("datecount: Specified term is out of range from A.D.1582 to A.D.9999.\n\(leadHelpMessage)")
 let direction:[String] = ["before", "after"]
-var leadText:String = ""
 let arguments:[String] = CommandLine.arguments
 let condition:Condition = Condition(arguments:arguments)
 let resultSet:(status:Int32,silence:Bool,direction:Int) = condition.getResult()
-switch resultSet.status {
-  case 0:
-    let dateSet:(targetDate:String?,destinationDate:String?) = condition.getDate()
-    let adjustCommand:String? = condition.getAdjustCommand()
-    let calendarDate:CalendarDate = CalendarDate()
-    calendarDate.generate(dateString:dateSet.targetDate)
-    if resultSet.direction != 0 {
-      calendarDate.adjust(commandString:adjustCommand, direction:resultSet.direction)
-    } else {
-      calendarDate.offset(dateString:dateSet.destinationDate)
-    }
-    let returnDate:(baseDateString:String, offsetDateString:String,
-        differenceString:String, dates:Int, status:Int32) = calendarDate.get(silence:resultSet.silence)
-    if returnDate.status == 0 {
-      if resultSet.direction != 0 {
-        if returnDate.differenceString != "" {
-          if resultSet.direction == 1 {
-            leadText = "\(returnDate.differenceString) \(direction[1]) \(returnDate.baseDateString) is \(returnDate.offsetDateString)\n"
+var returnCode:Int32 = resultSet.status
+if returnCode == 0 {
+  let dateSet:(targetDate:String?,destinationDate:String?) = condition.getDate()
+  let adjustCommand:String? = condition.getAdjustCommand()
+  let calendarDate:CalendarDate = CalendarDate()
+  calendarDate.generate(dateString:dateSet.targetDate)
+  if resultSet.direction != 0 {
+    calendarDate.adjust(commandString:adjustCommand, direction:resultSet.direction)
+  } else {
+    calendarDate.offset(dateString:dateSet.destinationDate)
+  }
+  let returnDate:(baseDateString:String, offsetDateString:String,
+      differenceString:String, dates:Int, status:Int32) = calendarDate.get(silence:resultSet.silence)
+  returnCode = returnDate.status
+  if returnCode == 0 {
+    switch resultSet.direction {
+      case 0:
+        if resultSet.silence {
+          message[0] = String(returnDate.dates)
+        } else {
+          message[0] = "\(returnDate.offsetDateString) is "
+          if returnDate.dates == 0 {
+            message[0] = "\(message[0])today\n"
+          } else if abs(returnDate.dates) == 1 {
+            message[0] = "\(message[0])1day \(direction[(resultSet.direction + 1)/2]) \(returnDate.baseDateString)\n"
           } else {
-            leadText = "\(returnDate.differenceString) \(direction[0]) \(returnDate.baseDateString) is \(returnDate.offsetDateString)\n"
+            message[0] = "\(message[0])\(abs(returnDate.dates))days \(direction[(resultSet.direction + 1)/2]) \(returnDate.baseDateString)\n"
           }
-        } else {
-          leadText = "Today is \(returnDate.offsetDateString)\n"
         }
-      } else {
-        if returnDate.dates == 0 {
-          leadText = "\(returnDate.offsetDateString) is today\n"
-        } else if returnDate.dates == -1 {
-          leadText = "\(returnDate.offsetDateString) is 1day before \(returnDate.baseDateString)\n"
-        } else if returnDate.dates < -1 {
-          leadText = "\(returnDate.offsetDateString) is \(abs(returnDate.dates))days before \(returnDate.baseDateString)\n"
-        } else if returnDate.dates == 1 {
-          leadText = "\(returnDate.offsetDateString) is 1day after \(returnDate.baseDateString)\n"
-        } else {
-          leadText = "\(returnDate.offsetDateString) is \(returnDate.dates)days after \(returnDate.baseDateString)\n"
+      default:
+        message[0] = returnDate.offsetDateString
+        if returnDate.differenceString != "" && !(resultSet.silence) {
+          if abs(resultSet.direction) == 1 {
+            message[0] = "\(returnDate.differenceString) \(direction[(resultSet.direction + 1)/2]) \(returnDate.baseDateString) is \(message[0])\n"
+          }
+        } else if !(resultSet.silence) {
+          message[0] = "Today is \(message[0])\n"
         }
-      }
-
-      if resultSet.silence {
-        if resultSet.direction == 0 {
-          screen.write(message:String(returnDate.dates))
-        } else {
-          screen.write(message:returnDate.offsetDateString)
-        }
-      } else {
-        screen.write(message:leadText)
-      }
-    } else if returnDate.status == 5 {
-      screen.write(message:dateCommandError+leadHelpMessage)
-    } else if returnDate.status == 6 {
-      screen.write(message:dateFormatError+leadHelpMessage)
-    } else if returnDate.status == 7 {
-      screen.write(message:dateRangeError+leadHelpMessage)
-    } else if returnDate.status == 8 {
-      screen.write(message:"\(returnDate.dates)")
     }
-    exit(Int32(returnDate.status))
-  case 1:
-    screen.write(message:version)
-  case 2:
-    screen.write(message:version+help+license)
-  case 3:
-    screen.write(message:needOptionError+leadHelpMessage)
-  case 4:
-    screen.write(message:unknownError+leadHelpMessage)
-  default:
-    break
+  }
 }
-exit(Int32(resultSet.status))
-
+screen.write(message:message[Int(returnCode)])
+exit(Int32(returnCode))
