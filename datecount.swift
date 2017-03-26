@@ -3,19 +3,22 @@ let screen:Screen = Screen()
 let leadHelpMessage:String = "For more information, type 'datecount -h'.\n"
 var message:[String] = []
 message.append("")
-message.append("datecount ver.1.61  2017.3.25 (c)Takeru.\n")
+message.append("datecount ver.1.62  2017.3.26 (c)Takeru.\n")
 message.append("\(message[1])")
 message[2] += "Usage:\n"
-message[2] += "    datecount -[a|A|b|B] [n(d)][(n)d][(n)w][(n)m][(n)y] [yyyymmdd]\n"
+message[2] += "    datecount -[a|A|b|B] command [fromDate]\n"
+message[2] += "    datecount -[c|C] toDate [fromDate]\n"
 message[2] += "    datecount -h\n"
 message[2] += "    datecount -v\n\n"
 message[2] += "Description:\n"
 message[2] += "    The datecount utility counts dates.\n"
-message[2] += "    To return the date from the indicated date.\n\n"
-message[2] += "    -a    Return after date from the indicated date.\n"
-message[2] += "    -A    Return after date from the indicated date.(Silence mode)\n"
-message[2] += "    -b    Return before date from the indicated date.\n"
-message[2] += "    -B    Return before date from the indicated date.(Silence mode)\n"
+message[2] += "    To return the date or number of days from the indicated date.\n\n"
+message[2] += "    -a    Return after date from today or fromDate.\n"
+message[2] += "    -A    Return after date from today or fromDate.(Silence mode)\n"
+message[2] += "    -b    Return before date from today or fromDate.\n"
+message[2] += "    -B    Return before date from today or fromDate.(Silence mode)\n"
+message[2] += "    -c    Return number of days from today or fromDate to toDate.\n"
+message[2] += "    -C    Return number of days from today or fromDate to toDate.(Silence mode)\n"
 message[2] += "    -h    Display this credit.\n"
 message[2] += "    -v    Display version.\n\n"
 message[2] += "    Command to forward/backward the date should be combined\n"
